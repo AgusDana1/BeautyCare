@@ -386,7 +386,7 @@ export default function AdminDashboardClient({
         </div>
 
         {/* Tab Navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-stone-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-stone-100 overflow-x-auto scrollbar-none">
           {[
             { id: "overview", label: "Ringkasan & Stok", icon: TrendingUp },
             { id: "products", label: "Kelola Produk & Varian (ml)", icon: Package },
@@ -399,7 +399,7 @@ export default function AdminDashboardClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 py-3 px-4 text-xs font-semibold border-b-2 transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-2 py-3 px-3.5 sm:px-4 text-xs font-semibold border-b-2 whitespace-nowrap shrink-0 transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "border-rose-600 text-rose-600 bg-rose-50/40"
                     : "border-transparent text-stone-500 hover:text-stone-900 hover:bg-stone-50"
