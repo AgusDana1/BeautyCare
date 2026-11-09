@@ -19,6 +19,9 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckCircle2,
+  Phone,
+  MapPin,
+  Clock,
 } from "lucide-react";
 
 interface Variant {
@@ -84,14 +87,14 @@ const HERO_SLIDES = [
   {
     id: 3,
     image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1600&auto=format&fit=crop&q=85",
-    badge: "Pembayaran Praktis • Scan Barcode",
-    title: "Transaksi Cepat via QRIS, Bank & E-Wallet",
+    badge: "Pembersih Wajah Lembut • Cerah Alami",
+    title: "Pembersih Wajah Busa Lembut & Niacinamide",
     description:
-      "Scan barcode QRIS langsung dari BCA Mobile, Livin, GoPay, OVO, DANA, atau ShopeePay dengan faktur invoice resmi siap cetak.",
-    primaryCta: "Lihat Metode Pembayaran",
+      "Formula busa mikro amino acid yang mengangkat kotoran pori secara mendalam tanpa membuat kulit kering tertarik.",
+    primaryCta: "Lihat Koleksi Skincare",
     targetCategory: "skincare",
-    statBadge: "Scan QRIS Instan",
-    statSub: "Invoice Resmi Otomatis",
+    statBadge: "pH Alami Kulit 5.5",
+    statSub: "Busa Lembut & Segar",
   },
   {
     id: 4,
@@ -289,7 +292,7 @@ export default function StorefrontClient({
         <Sparkles className="w-3.5 h-3.5 animate-pulse" />
       </div>
 
-      {/* Navbar with Glassmorphism & Hover Animations */}
+      {/* Navbar with Glassmorphism & Hover Animations (Clean without Metode Pembayaran & Portal Admin) */}
       <nav className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-stone-200/60 shadow-xs transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Logo */}
@@ -310,8 +313,8 @@ export default function StorefrontClient({
             </div>
           </Link>
 
-          {/* Nav links with animated underline expand */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-stone-600">
+          {/* Clean Nav Links */}
+          <div className="flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-stone-600">
             <a
               href="#katalog"
               className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300"
@@ -324,23 +327,10 @@ export default function StorefrontClient({
             >
               Keunggulan
             </a>
-            <a
-              href="#cara-pesan"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300"
-            >
-              Metode Pembayaran
-            </a>
           </div>
 
-          {/* Right Action Buttons */}
+          {/* Right Action Button */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin/login"
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-700 bg-stone-100/90 hover:bg-stone-200/90 hover:text-stone-900 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 shadow-2xs"
-            >
-              <span>Portal Admin</span>
-            </Link>
-
             <a
               href="#katalog"
               className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md shadow-rose-500/25 flex items-center gap-2 group cursor-pointer"
@@ -416,11 +406,10 @@ export default function StorefrontClient({
                     </a>
 
                     <a
-                      href="#cara-pesan"
+                      href="#keunggulan"
                       className="px-5 py-3 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold text-xs sm:text-sm border border-white/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 cursor-pointer"
                     >
-                      <QrCode className="w-4 h-4 text-rose-300" />
-                      <span>Cara Bayar QRIS</span>
+                      <span>Keunggulan BeautyCare</span>
                     </a>
                   </div>
 
@@ -505,11 +494,11 @@ export default function StorefrontClient({
 
           <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-stone-200/70 shadow-xs hover:shadow-md hover:scale-[1.02] transition-all duration-200 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-              <QrCode className="w-5 h-5" />
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-xs text-stone-900">Scan QRIS Instan</div>
-              <div className="text-[11px] text-stone-400">Semua Bank &amp; E-Wallet</div>
+              <div className="font-bold text-xs text-stone-900">Kualitas Teruji</div>
+              <div className="text-[11px] text-stone-400">Standar Dermatologi</div>
             </div>
           </div>
 
@@ -796,76 +785,159 @@ export default function StorefrontClient({
         </div>
       </section>
 
-      {/* PAYMENT METHODS & TRUST SECTION */}
-      <section id="cara-pesan" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-t border-stone-200/80">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-rose-600">
-              Kemudahan Pembayaran
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
-              Mendukung Pembayaran QRIS, Bank Transfer &amp; E-Wallet
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-500 max-w-xl mx-auto">
-              Scan barcode langsung dari HP Anda atau transfer melalui rekening bank terpercaya.
-              Invoice resmi akan otomatis dibuat dan siap dicetak.
+      {/* RICH MODERN FOOTER (INTEGRATING PAYMENT METHODS, BRAND INFO & CUSTOMER SUPPORT) */}
+      <footer className="bg-stone-900 text-stone-400 pt-16 pb-10 px-4 sm:px-6 lg:px-8 mt-auto border-t border-stone-800">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Main Footer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            {/* Col 1: Brand & Contact Info */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center font-bold shadow-md shadow-rose-500/20">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <span className="font-black text-white text-lg tracking-tight">
+                  BeautyCare<span className="text-rose-500">.</span>
+                </span>
+              </div>
+              <p className="text-xs text-stone-400 leading-relaxed">
+                Solusi perawatan kecantikan, skincare, dan estetika kulit premium dengan fleksibilitas
+                varian ukuran (ml) lengkap untuk kebutuhan perawatan harian Anda.
+              </p>
+              <div className="space-y-2 text-xs text-stone-400 pt-1">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>Jl. Senopati Raya No. 45, Jakarta Selatan</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>WhatsApp CS: 0812-3456-7890</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>Senin - Minggu: 08.00 - 21.00 WIB</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 2: Navigasi Katalog */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+                Kategori Produk
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <a
+                    href="#katalog"
+                    onClick={() => setSelectedCategory("ALL")}
+                    className="hover:text-rose-400 transition-colors"
+                  >
+                    Semua Koleksi Perawatan
+                  </a>
+                </li>
+                {initialCategories.map((c) => (
+                  <li key={c.id}>
+                    <a
+                      href="#katalog"
+                      onClick={() => setSelectedCategory(c.slug)}
+                      className="hover:text-rose-400 transition-colors"
+                    >
+                      {c.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Col 3: Integrasi Metode Pembayaran (Payment Channels) */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+                Metode Pembayaran
+              </h4>
+              <p className="text-xs text-stone-400">
+                Pemesanan mendukung pembayaran instan &amp; terverifikasi dengan invoice resmi otomatis:
+              </p>
+              
+              <div className="space-y-2.5">
+                {/* QRIS */}
+                <div className="p-2.5 rounded-xl bg-stone-800/80 border border-stone-700/60 flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div className="text-[11px]">
+                    <span className="font-bold text-stone-200 block">QRIS Standar Nasional</span>
+                    <span className="text-stone-400">Scan via BCA, Gopay, OVO, Dana, ShopeePay</span>
+                  </div>
+                </div>
+
+                {/* Transfer Bank */}
+                <div className="p-2.5 rounded-xl bg-stone-800/80 border border-stone-700/60 flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div className="text-[11px]">
+                    <span className="font-bold text-stone-200 block">Transfer Bank Resmi</span>
+                    <span className="text-stone-400">BCA, Mandiri, BNI, BRI</span>
+                  </div>
+                </div>
+
+                {/* E-Wallet */}
+                <div className="p-2.5 rounded-xl bg-stone-800/80 border border-stone-700/60 flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="text-[11px]">
+                    <span className="font-bold text-stone-200 block">Dompet Digital</span>
+                    <span className="text-stone-400">GoPay, DANA, OVO, ShopeePay</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 4: Jaminan Keamanan & Belanja */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-white">
+                Jaminan Belanja
+              </h4>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-stone-200 block">100% Asli &amp; BPOM</span>
+                    <span className="text-[11px] text-stone-400">Semua produk terdaftar resmi dan aman.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <Truck className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-stone-200 block">Gratis Pengiriman</span>
+                    <span className="text-[11px] text-stone-400">Pengemasan bubble wrap tebal dan rapi.</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-stone-200 block">Faktur Resmi Tersedia</span>
+                    <span className="text-[11px] text-stone-400">Invoice bisa langsung diunduh / dicetak.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Bar (Without Admin Portal Link as requested) */}
+          <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+            <p className="text-center sm:text-left">
+              © 2026 BeautyCare Indonesia. Hak Cipta Dilindungi. Solusi perawatan kulit dan kecantikan terpercaya.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-3xl bg-stone-50 border border-stone-200/80 hover:border-purple-200 hover:shadow-md transition-all duration-300 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-xs">
-                <QrCode className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-stone-900 text-base">QRIS (Barcode Scan)</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Scan barcode QRIS resmi yang bisa dibayar melalui aplikasi apa saja: GoPay, OVO, DANA, BCA Mobile, Livin Mandiri, ShopeePay.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-stone-50 border border-stone-200/80 hover:border-blue-200 hover:shadow-md transition-all duration-300 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-xs">
-                <CreditCard className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-stone-900 text-base">Transfer Bank Resmi</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Transfer mudah melalui BCA, Mandiri, BNI, dan BRI dengan verifikasi aman dan konfirmasi nomor faktur otomatis.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-stone-50 border border-stone-200/80 hover:border-rose-200 hover:shadow-md transition-all duration-300 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-xs">
-                <Smartphone className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-stone-900 text-base">Dompet Digital (E-Wallet)</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Kirim pembayaran praktis lewat saldo DANA, GoPay, ShopeePay, atau OVO tanpa biaya admin tambahan.
-              </p>
+            <div className="flex items-center gap-6 text-[11px]">
+              <span>Kebijakan Privasi</span>
+              <span>Syarat &amp; Ketentuan</span>
+              <span>Bantuan Pelanggan</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-stone-900 text-stone-400 py-12 px-4 sm:px-6 lg:px-8 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <span className="font-bold text-white text-sm">BeautyCare Indonesia</span>
-          </div>
-
-          <p className="text-center sm:text-left">
-            © 2026 BeautyCare. Hak Cipta Dilindungi. Solusi perawatan kulit dan kecantikan terpercaya.
-          </p>
-
-          <Link
-            href="/admin/login"
-            className="hover:text-white transition-colors underline underline-offset-4"
-          >
-            Masuk sebagai Admin
-          </Link>
         </div>
       </footer>
 
