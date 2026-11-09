@@ -8,6 +8,8 @@ import {
   Search,
   SlidersHorizontal,
   ShoppingBag,
+  ShoppingCart,
+  Trash2,
   ArrowRight,
   ShieldCheck,
   Truck,
@@ -22,6 +24,8 @@ import {
   Phone,
   MapPin,
   Clock,
+  Plus,
+  Minus,
 } from "lucide-react";
 
 interface Variant {
@@ -52,6 +56,16 @@ interface Product {
   categoryId: number;
   category: Category;
   variants: Variant[];
+}
+
+export interface CartItem {
+  productId: number;
+  productName: string;
+  productImage: string | null;
+  variantId: number | null;
+  selectedSize: string | null;
+  price: number;
+  quantity: number;
 }
 
 interface Props {
@@ -126,12 +140,29 @@ export default function StorefrontClient({
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("recommended");
 
+  // Cart State (Persisted in localStorage via state initializer)
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedCart = localStorage.getItem("beautycare_cart");
+        if (savedCart) {
+          return JSON.parse(savedCart);
+        }
+      } catch (err) {
+        console.error("Failed to load cart", err);
+      }
+    }
+    return [];
+  });
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   // "Pesan Sekarang" Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
-  // Customer Form State
+  // Customer Form State (for both Instant Order and Cart Checkout)
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -140,6 +171,29 @@ export default function StorefrontClient({
   const [notes, setNotes] = useState("");
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [orderError, setOrderError] = useState("");
+
+  // Save cart helper
+  const updateCart = (newCart: CartItem[]) => {
+    setCart(newCart);
+    try {
+      localStorage.setItem("beautycare_cart", JSON.stringify(newCart));
+    } catch (err) {
+      console.error("Failed to save cart", err);
+    }
+  };
+
+  // Toast notification helper
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Total quantity across all items in cart
+  const totalCartItems = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0);
+  }, [cart]);
 
   // Slide navigation
   const nextSlide = useCallback(() => {
@@ -178,18 +232,15 @@ export default function StorefrontClient({
   const filteredProducts = useMemo(() => {
     return initialProducts
       .filter((product) => {
-        // Category Filter
         const matchesCategory =
           selectedCategory === "ALL" ||
           product.category.slug === selectedCategory ||
           product.categoryId.toString() === selectedCategory;
 
-        // Search Filter
         const matchesSearch =
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // Size (ml) Filter
         const matchesSize =
           selectedSizeFilter === "ALL" ||
           (product.hasVariants &&
@@ -201,9 +252,60 @@ export default function StorefrontClient({
         if (sortBy === "price-low") return a.price - b.price;
         if (sortBy === "price-high") return b.price - a.price;
         if (sortBy === "name") return a.name.localeCompare(b.name);
-        return 0; // recommended
+        return 0;
       });
   }, [initialProducts, selectedCategory, searchQuery, selectedSizeFilter, sortBy]);
+
+  // Add Item to Cart
+  const handleAddToCart = (product: Product, variant: Variant | null = null, qty = 1) => {
+    const chosenVariant = variant || (product.hasVariants && product.variants.length > 0 ? product.variants[0] : null);
+    const itemPrice = chosenVariant ? chosenVariant.price : product.price;
+    const itemSize = chosenVariant ? chosenVariant.size : null;
+    const variantId = chosenVariant ? chosenVariant.id : null;
+
+    const existingIndex = cart.findIndex(
+      (c) => c.productId === product.id && c.variantId === variantId
+    );
+
+    let updatedCart: CartItem[];
+    if (existingIndex > -1) {
+      updatedCart = [...cart];
+      updatedCart[existingIndex].quantity += qty;
+    } else {
+      updatedCart = [
+        ...cart,
+        {
+          productId: product.id,
+          productName: product.name,
+          productImage: product.image,
+          variantId,
+          selectedSize: itemSize,
+          price: itemPrice,
+          quantity: qty,
+        },
+      ];
+    }
+
+    updateCart(updatedCart);
+    showToast(`✓ ${qty}x ${product.name} ${itemSize ? `(${itemSize})` : ""} ditambahkan ke keranjang!`);
+  };
+
+  // Modify cart item quantity
+  const handleUpdateCartQty = (index: number, newQty: number) => {
+    if (newQty <= 0) {
+      handleRemoveCartItem(index);
+      return;
+    }
+    const updated = [...cart];
+    updated[index].quantity = newQty;
+    updateCart(updated);
+  };
+
+  // Remove cart item
+  const handleRemoveCartItem = (index: number) => {
+    const updated = cart.filter((_, i) => i !== index);
+    updateCart(updated);
+  };
 
   // Open "Pesan Sekarang" Modal
   const handleOpenOrderModal = (product: Product) => {
@@ -223,8 +325,8 @@ export default function StorefrontClient({
     setSelectedVariant(null);
   };
 
-  // Submit Order
-  const handleConfirmOrder = async (e: React.FormEvent) => {
+  // Submit Instant Single-Product Order
+  const handleConfirmInstantOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
 
@@ -277,12 +379,77 @@ export default function StorefrontClient({
     }
   };
 
+  // Submit Multi-Item Cart Order
+  const handleConfirmCartOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+
+    setOrderSubmitting(true);
+    setOrderError("");
+
+    try {
+      const payload = {
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerAddress,
+        paymentMethod,
+        paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
+        notes,
+        items: cart.map((c) => ({
+          productId: c.productId,
+          variantId: c.variantId,
+          selectedSize: c.selectedSize,
+          quantity: c.quantity,
+          price: c.price,
+        })),
+      };
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal memproses pesanan keranjang");
+      }
+
+      // Clear cart
+      updateCart([]);
+      setIsCartOpen(false);
+      router.push(`/order/${data.invoiceNumber}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setOrderError(err.message);
+      } else {
+        setOrderError("Terjadi kesalahan sistem.");
+      }
+    } finally {
+      setOrderSubmitting(false);
+    }
+  };
+
   const currentPrice = selectedVariant ? selectedVariant.price : selectedProduct?.price ?? 0;
   const currentStock = selectedVariant ? selectedVariant.stock : selectedProduct?.stock ?? 0;
   const totalPrice = currentPrice * quantity;
 
+  const totalCartPrice = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cart]);
+
   return (
     <div className="min-h-screen bg-[#faf7f5] text-stone-800 flex flex-col selection:bg-rose-200">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-5 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-stone-800 flex items-center gap-2 animate-fade-in-up">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Banner Announcement */}
       <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5 animate-pulse" />
@@ -329,8 +496,23 @@ export default function StorefrontClient({
             </a>
           </div>
 
-          {/* Right Action Button */}
+          {/* Right Action Area */}
           <div className="flex items-center gap-3">
+            {/* REQUIREMENT: TAMPILKAN ICON KERANJANG DI NAVBAR BILA USER SUDAH MEMESAN / MEMILIH BARANG LEBIH DARI 1 */}
+            {totalCartItems > 1 && (
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2.5 rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center animate-fade-in-up group"
+                aria-label="Keranjang Belanja"
+                title={`Keranjang Belanja (${totalCartItems} barang)`}
+              >
+                <ShoppingCart className="w-5 h-5 text-rose-600 group-hover:rotate-6 transition-transform" />
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-md shadow-rose-600/30 animate-pulse">
+                  {totalCartItems}
+                </span>
+              </button>
+            )}
+
             <a
               href="#katalog"
               className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md shadow-rose-500/25 flex items-center gap-2 group cursor-pointer"
@@ -755,7 +937,7 @@ export default function StorefrontClient({
                         </div>
                       </div>
 
-                      {/* Price & Action */}
+                      {/* Price & Actions */}
                       <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
                         <div>
                           <span className="text-[10px] text-stone-400 block font-medium">
@@ -766,15 +948,28 @@ export default function StorefrontClient({
                           </span>
                         </div>
 
-                        {/* "Pesan Sekarang" Button with Hover Animation */}
-                        <button
-                          onClick={() => handleOpenOrderModal(product)}
-                          disabled={product.stock === 0}
-                          className="px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-md shadow-rose-600/25 hover:shadow-lg hover:shadow-rose-600/40 hover:scale-105 transition-all duration-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span>Pesan Sekarang</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          {/* Quick Add to Cart button */}
+                          <button
+                            onClick={() => handleAddToCart(product, null, 1)}
+                            disabled={product.stock === 0}
+                            className="p-2.5 rounded-xl border border-stone-200 hover:border-rose-300 bg-stone-50 hover:bg-rose-50 text-stone-700 hover:text-rose-600 shadow-2xs hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Tambah ke Keranjang"
+                            aria-label="Tambah ke Keranjang"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                          </button>
+
+                          {/* "Pesan Sekarang" Button with Hover Animation */}
+                          <button
+                            onClick={() => handleOpenOrderModal(product)}
+                            disabled={product.stock === 0}
+                            className="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-md shadow-rose-600/25 hover:shadow-lg hover:shadow-rose-600/40 hover:scale-105 transition-all duration-200 flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span>Pesan</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -927,7 +1122,7 @@ export default function StorefrontClient({
             </div>
           </div>
 
-          {/* Bottom Copyright Bar (Without Admin Portal Link as requested) */}
+          {/* Bottom Copyright Bar */}
           <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
             <p className="text-center sm:text-left">
               © 2026 BeautyCare Indonesia. Hak Cipta Dilindungi. Solusi perawatan kulit dan kecantikan terpercaya.
@@ -941,7 +1136,258 @@ export default function StorefrontClient({
         </div>
       </footer>
 
-      {/* "PESAN SEKARANG" MODAL WITH FILTER PER ML */}
+      {/* SLIDE-OVER DRAWER / MODAL KERANJANG BELANJA */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-xs flex justify-end">
+          <div className="bg-white w-full max-w-md h-full shadow-2xl flex flex-col justify-between animate-fade-in-up">
+            {/* Header */}
+            <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-rose-600" />
+                <h3 className="font-extrabold text-base text-stone-900">
+                  Keranjang Belanja ({totalCartItems})
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Cart Items List */}
+            <div className="p-5 flex-1 overflow-y-auto space-y-4">
+              {cart.length === 0 ? (
+                <div className="text-center py-16 text-stone-400 space-y-3">
+                  <ShoppingCart className="w-12 h-12 mx-auto text-stone-300 stroke-[1.5]" />
+                  <p className="text-xs">Keranjang belanja Anda masih kosong.</p>
+                  <button
+                    onClick={() => setIsCartOpen(false)}
+                    className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                  >
+                    Mulai Belanja Produk →
+                  </button>
+                </div>
+              ) : (
+                cart.map((item, idx) => (
+                  <div
+                    key={`${item.productId}-${item.variantId || "base"}`}
+                    className="p-3 rounded-2xl border border-stone-200/80 bg-stone-50/40 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.productImage ? (
+                        <img
+                          src={item.productImage}
+                          alt={item.productName}
+                          className="w-14 h-14 rounded-xl object-cover border border-stone-200 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-stone-200 flex items-center justify-center font-bold text-stone-400 text-xs shrink-0">
+                          BC
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-bold text-xs text-stone-900 line-clamp-1">
+                          {item.productName}
+                        </h4>
+                        {item.selectedSize && (
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200/50">
+                            {item.selectedSize}
+                          </span>
+                        )}
+                        <div className="text-xs font-mono font-bold text-rose-600 mt-1">
+                          Rp {item.price.toLocaleString("id-ID")}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <button
+                        onClick={() => handleRemoveCartItem(idx)}
+                        className="text-stone-300 hover:text-red-500 transition p-1 cursor-pointer"
+                        title="Hapus"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                      <div className="flex items-center gap-1.5 bg-white border border-stone-200 rounded-lg p-0.5">
+                        <button
+                          onClick={() => handleUpdateCartQty(idx, item.quantity - 1)}
+                          className="w-5 h-5 rounded hover:bg-stone-100 text-stone-600 flex items-center justify-center font-bold text-xs cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="w-5 text-center text-xs font-bold font-mono">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleUpdateCartQty(idx, item.quantity + 1)}
+                          className="w-5 h-5 rounded hover:bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Cart Footer & Checkout Form */}
+            {cart.length > 0 && (
+              <div className="p-5 border-t border-stone-100 bg-white space-y-4">
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between text-stone-500">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">Rp {totalCartPrice.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between text-stone-500">
+                    <span>Ongkos Kirim:</span>
+                    <span className="font-bold text-emerald-600">GRATIS</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold text-stone-900 pt-1 border-t border-stone-100">
+                    <span>Total Pembayaran:</span>
+                    <span className="font-mono text-rose-600 text-base">
+                      Rp {totalCartPrice.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                </div>
+
+                {orderError && (
+                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
+                    {orderError}
+                  </div>
+                )}
+
+                {/* Direct Checkout Form inside Cart Drawer */}
+                <form onSubmit={handleConfirmCartOrder} className="space-y-3 pt-2 text-xs">
+                  <div>
+                    <label className="block font-semibold text-stone-700 mb-1">
+                      Nama Lengkap Penerima <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Rina Melati"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block font-semibold text-stone-700 mb-1">
+                        No. WA / HP <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="081234567890"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-stone-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        placeholder="opsional"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-700 mb-1">
+                      Alamat Pengiriman <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      placeholder="Jalan, No. Rumah, RT/RW, Kota, Kode Pos"
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20 text-xs"
+                    />
+                  </div>
+
+                  {/* Payment Method Selector in Cart */}
+                  <div>
+                    <label className="block font-semibold text-stone-700 mb-1">
+                      Metode Pembayaran <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("QRIS")}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          paymentMethod === "QRIS"
+                            ? "bg-purple-50 border-purple-500 text-purple-800 font-bold"
+                            : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
+                        }`}
+                      >
+                        <QrCode className="w-4 h-4 mx-auto mb-0.5 text-purple-600" />
+                        <span className="text-[10px] block">QRIS</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("BANK_TRANSFER")}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          paymentMethod === "BANK_TRANSFER"
+                            ? "bg-blue-50 border-blue-500 text-blue-800 font-bold"
+                            : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
+                        }`}
+                      >
+                        <CreditCard className="w-4 h-4 mx-auto mb-0.5 text-blue-600" />
+                        <span className="text-[10px] block">Transfer</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("E_WALLET")}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          paymentMethod === "E_WALLET"
+                            ? "bg-rose-50 border-rose-500 text-rose-800 font-bold"
+                            : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
+                        }`}
+                      >
+                        <Smartphone className="w-4 h-4 mx-auto mb-0.5 text-rose-600" />
+                        <span className="text-[10px] block">E-Wallet</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={orderSubmitting}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold text-xs shadow-lg shadow-rose-600/30 hover:scale-[1.02] active:scale-98 transition-all duration-200 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
+                  >
+                    {orderSubmitting ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Memproses Pesanan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Checkout &amp; Bayar ({totalCartItems} Barang)</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* "PESAN SEKARANG" MODAL WITH FILTER PER ML & ADD TO CART OPTION */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in-up">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto relative">
@@ -967,7 +1413,7 @@ export default function StorefrontClient({
               </div>
             )}
 
-            <form onSubmit={handleConfirmOrder} className="mt-5 space-y-5 text-xs">
+            <form onSubmit={handleConfirmInstantOrder} className="mt-5 space-y-5 text-xs">
               {/* Product preview */}
               <div className="flex items-center gap-4 p-3 rounded-2xl bg-stone-50 border border-stone-200/80">
                 {selectedProduct.image && (
@@ -1182,8 +1628,8 @@ export default function StorefrontClient({
                 </div>
               </div>
 
-              {/* Total Summary */}
-              <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+              {/* Total Summary & Action Buttons */}
+              <div className="pt-3 border-t border-stone-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[11px] text-stone-400 block font-medium">
                     Total Pembayaran
@@ -1193,23 +1639,39 @@ export default function StorefrontClient({
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={orderSubmitting || currentStock === 0}
-                  className="px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg shadow-rose-600/30 hover:scale-105 transition-all duration-200 disabled:opacity-50 cursor-pointer flex items-center gap-2"
-                >
-                  {orderSubmitting ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Memproses...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Konfirmasi &amp; Bayar</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedProduct) {
+                        handleAddToCart(selectedProduct, selectedVariant, quantity);
+                        handleCloseOrderModal();
+                      }
+                    }}
+                    className="px-4 py-3 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <ShoppingCart className="w-4 h-4 text-rose-600" />
+                    <span>+ Keranjang</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={orderSubmitting || currentStock === 0}
+                    className="px-5 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold text-xs shadow-lg shadow-rose-600/30 hover:scale-105 transition-all duration-200 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {orderSubmitting ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Memproses...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Bayar Langsung</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
