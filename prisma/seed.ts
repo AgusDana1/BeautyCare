@@ -11,13 +11,20 @@ async function main() {
   }
 
   const u = new URL(databaseUrl);
+  const sslParam = u.searchParams.get("ssl-mode") || u.searchParams.get("ssl");
+  const useSsl =
+    sslParam === "REQUIRED" ||
+    sslParam === "true" ||
+    u.hostname.includes("aivencloud.com") ||
+    databaseUrl.includes("ssl-mode=REQUIRED");
+
   const pool = mariadb.createPool({
     host: u.hostname,
     port: parseInt(u.port || "3306", 10),
     user: decodeURIComponent(u.username),
     password: decodeURIComponent(u.password),
     database: u.pathname.replace(/^\//, ""),
-    ssl: false,
+    ssl: useSsl ? { rejectUnauthorized: false } : false,
     connectTimeout: 10000,
   });
 

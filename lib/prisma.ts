@@ -14,6 +14,13 @@ function createPrismaClient() {
   }
 
   const u = new URL(databaseUrl);
+  const sslParam = u.searchParams.get("ssl-mode") || u.searchParams.get("ssl");
+  const useSsl =
+    sslParam === "REQUIRED" ||
+    sslParam === "true" ||
+    u.hostname.includes("aivencloud.com") ||
+    databaseUrl.includes("ssl-mode=REQUIRED");
+
   const pool =
     (globalForPrisma.pool as ReturnType<typeof mariadb.createPool>) ??
     mariadb.createPool({
@@ -22,7 +29,7 @@ function createPrismaClient() {
       user: decodeURIComponent(u.username),
       password: decodeURIComponent(u.password),
       database: u.pathname.replace(/^\//, ""),
-      ssl: false,
+      ssl: useSsl ? { rejectUnauthorized: false } : false,
       connectionLimit: 10,
       connectTimeout: 10000,
     });

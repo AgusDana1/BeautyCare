@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Search } from "lucide-react";
 
@@ -82,6 +82,31 @@ const HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
+const CART_STORAGE_KEY = "beautycare_cart";
+
+const subscribeCart = (callback: () => void) => {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener("beautycare-cart-updated", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("beautycare-cart-updated", callback);
+  };
+};
+
+const getCartSnapshot = () => {
+  if (typeof window === "undefined") return "[]";
+  try {
+    return localStorage.getItem(CART_STORAGE_KEY) || "[]";
+  } catch {
+    return "[]";
+  }
+};
+
+const getCartServerSnapshot = () => {
+  return "[]";
+};
+
 export default function StorefrontClient({
   initialCategories,
   initialProducts,
@@ -98,20 +123,21 @@ export default function StorefrontClient({
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("recommended");
 
-  // Cart State (Persisted in localStorage via state initializer)
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedCart = localStorage.getItem("beautycare_cart");
-        if (savedCart) {
-          return JSON.parse(savedCart);
-        }
-      } catch (err) {
-        console.error("Failed to load cart", err);
-      }
+  // Cart State (Persisted in localStorage via useSyncExternalStore to avoid SSR hydration mismatch)
+  const cartJson = useSyncExternalStore(
+    subscribeCart,
+    getCartSnapshot,
+    getCartServerSnapshot
+  );
+
+  const cart: CartItem[] = useMemo(() => {
+    try {
+      return JSON.parse(cartJson);
+    } catch {
+      return [];
     }
-    return [];
-  });
+  }, [cartJson]);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -132,9 +158,9 @@ export default function StorefrontClient({
 
   // Save cart helper
   const updateCart = (newCart: CartItem[]) => {
-    setCart(newCart);
     try {
-      localStorage.setItem("beautycare_cart", JSON.stringify(newCart));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newCart));
+      window.dispatchEvent(new Event("beautycare-cart-updated"));
     } catch (err) {
       console.error("Failed to save cart", err);
     }
