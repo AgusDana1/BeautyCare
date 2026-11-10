@@ -6,7 +6,7 @@ import StorefrontClient from "./StorefrontClient";
 async function HomeContent() {
   await connection();
 
-  const [categories, products] = await Promise.all([
+  const [categories, products, articles] = await Promise.all([
     prisma.category.findMany({
       orderBy: { name: "asc" },
     }),
@@ -16,12 +16,17 @@ async function HomeContent() {
         variants: {
           orderBy: { sizeValue: "asc" },
         },
+        reviews: true,
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.article.findMany({
+      orderBy: { publishedAt: "desc" },
+      take: 6,
+    }),
   ]);
 
-  // Sanitize decimals for client
+  // Sanitize decimals & dates for client
   const sanitizedProducts = products.map((p) => ({
     ...p,
     price: Number(p.price),
@@ -29,12 +34,22 @@ async function HomeContent() {
       ...v,
       price: Number(v.price),
     })),
+    reviews: p.reviews.map((r) => ({
+      ...r,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  }));
+
+  const sanitizedArticles = articles.map((a) => ({
+    ...a,
+    publishedAt: a.publishedAt.toISOString(),
   }));
 
   return (
     <StorefrontClient
       initialCategories={categories}
       initialProducts={sanitizedProducts}
+      initialArticles={sanitizedArticles}
     />
   );
 }

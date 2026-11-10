@@ -14,14 +14,17 @@ import {
 import { Category } from "../types/storefront";
 
 interface FooterProps {
-  categories: Category[];
-  onSelectCategory: (categorySlug: string) => void;
+  categories?: Category[];
+  onSelectCategory?: (categorySlug: string) => void;
 }
 
-export default function Footer({ categories, onSelectCategory }: FooterProps) {
+export default function Footer({
+  categories = [],
+  onSelectCategory = () => {},
+}: FooterProps) {
   return (
     <footer className="bg-stone-900 text-stone-400 pt-8 sm:pt-16 pb-6 sm:pb-10 px-3 sm:px-6 lg:px-8 mt-auto border-t border-stone-800">
-      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-12">
+      <div className="max-w-7xl mx-auto space-y-6+ sm:space-y-12">
         {/* Main Footer Grid: 1 col on mobile, 2 col on tablet, 4 col on desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
           {/* Col 1: Brand & Contact Info */}

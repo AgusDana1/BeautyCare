@@ -11,6 +11,7 @@ import {
   CartItem,
   HeroSlide,
   PaymentMethod,
+  Article,
 } from "./types/storefront";
 
 import Navbar from "./components/Navbar";
@@ -20,12 +21,15 @@ import CatalogFilters from "./components/CatalogFilters";
 import ProductCard from "./components/ProductCard";
 import CartDrawer from "./components/CartDrawer";
 import OrderModal from "./components/OrderModal";
+import LoyaltySection from "./components/LoyaltySection";
+import ArticlesSection from "./components/ArticlesSection";
 import FaqSection from "./components/FaqSection";
 import Footer from "./components/Footer";
 
 interface Props {
   initialCategories: Category[];
   initialProducts: Product[];
+  initialArticles?: Article[];
 }
 
 const HERO_SLIDES: HeroSlide[] = [
@@ -111,6 +115,7 @@ const getCartServerSnapshot = () => {
 export default function StorefrontClient({
   initialCategories,
   initialProducts,
+  initialArticles = [],
 }: Props) {
   const router = useRouter();
 
@@ -314,7 +319,10 @@ export default function StorefrontClient({
   };
 
   // Submit Instant Single-Product Order
-  const handleConfirmInstantOrder = async (e: React.FormEvent) => {
+  const handleConfirmInstantOrder = async (
+    e: React.FormEvent,
+    redeemPoints: number = 0
+  ) => {
     e.preventDefault();
     if (!selectedProduct) return;
 
@@ -332,6 +340,7 @@ export default function StorefrontClient({
         paymentMethod,
         paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
         notes,
+        redeemPoints,
         items: [
           {
             productId: selectedProduct.id,
@@ -368,7 +377,10 @@ export default function StorefrontClient({
   };
 
   // Submit Multi-Item Cart Order
-  const handleConfirmCartOrder = async (e: React.FormEvent) => {
+  const handleConfirmCartOrder = async (
+    e: React.FormEvent,
+    redeemPoints: number = 0
+  ) => {
     e.preventDefault();
     if (cart.length === 0) return;
 
@@ -384,6 +396,7 @@ export default function StorefrontClient({
         paymentMethod,
         paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
         notes,
+        redeemPoints,
         items: cart.map((c) => ({
           productId: c.productId,
           variantId: c.variantId,
@@ -504,6 +517,12 @@ export default function StorefrontClient({
           )}
         </div>
       </section>
+
+      {/* Loyalty Program & Sistem Poin Section */}
+      <LoyaltySection />
+
+      {/* Edukasi (Artikel / Blog CMS) Section */}
+      <ArticlesSection articles={initialArticles} />
 
       {/* Modular FAQ Section with Smooth Scrolling */}
       <FaqSection />

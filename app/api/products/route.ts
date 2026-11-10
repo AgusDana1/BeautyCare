@@ -56,6 +56,7 @@ export async function GET(request: Request) {
         variants: {
           orderBy: { sizeValue: "asc" },
         },
+        reviews: true,
       },
       orderBy,
     });

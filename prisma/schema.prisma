@@ -34,20 +34,82 @@ model Category {
 }
 
 model Product {
-  id          Int              @id @default(autoincrement())
-  name        String
-  slug        String           @unique
-  description String           @db.Text
-  image       String?          @db.Text
-  price       Decimal          @db.Decimal(10, 2)
-  stock       Int              @default(0)
-  hasVariants Boolean          @default(false)
-  categoryId  Int
-  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  variants    ProductVariant[]
-  orderItems  OrderItem[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id              Int              @id @default(autoincrement())
+  name            String
+  slug            String           @unique
+  description     String           @db.Text
+  image           String?          @db.Text
+  price           Decimal          @db.Decimal(10, 2)
+  stock           Int              @default(0)
+  hasVariants     Boolean          @default(false)
+  categoryId      Int
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+  reviews         Review[]
+  sellerName      String           @default("BeautyCare Official Store")
+  sellerBadge     String           @default("Official Dermatologist Partner")
+  sellerRating    String           @default("4.9 / 5.0")
+  sellerCity      String           @default("Jakarta Selatan")
+  sellerResponse  String           @default("± 15 Menit")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Review {
+  id              Int              @id @default(autoincrement())
+  productId       Int
+  product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviewerName    String
+  rating          Int              @default(5)
+  comment         String           @db.Text
+  userLocation    String?          @default("Jakarta")
+  userAvatar      String?          @db.Text
+  mediaUrl        String?          @db.Text // Photo or video documentation from buyer
+  mediaType       String?          @default("image") // "image" or "video"
+  selectedVariant String?          // e.g. "Varian: 50ml"
+  helpfulCount    Int              @default(0)
+  createdAt       DateTime         @default(now())
+}
+
+model CustomerLoyalty {
+  id          Int                 @id @default(autoincrement())
+  phone       String              @unique
+  name        String?
+  email       String?
+  points      Int                 @default(0)
+  tier        String              @default("SILVER") // SILVER, GOLD, PLATINUM
+  totalSpent  Decimal             @default(0) @db.Decimal(10, 2)
+  history     PointTransaction[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model PointTransaction {
+  id          Int                 @id @default(autoincrement())
+  loyaltyId   Int
+  loyalty     CustomerLoyalty     @relation(fields: [loyaltyId], references: [id], onDelete: Cascade)
+  points      Int                 // e.g. +100 or -50
+  type        String              // "EARN" or "REDEEM"
+  description String
+  createdAt   DateTime            @default(now())
+}
+
+model Article {
+  id              Int              @id @default(autoincrement())
+  slug            String           @unique
+  title           String
+  excerpt         String           @db.Text
+  content         String           @db.LongText
+  coverImage      String           @db.Text
+  category        String           // "Tips Skincare", "Panduan Memilih", "Tren Makeup"
+  authorName      String           @default("dr. Sarah Melati, Sp.KK")
+  authorAvatar    String?          @db.Text
+  authorRole      String           @default("Dermatology Specialist")
+  readTimeMinutes Int              @default(4)
+  publishedAt     DateTime         @default(now())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model ProductVariant {
@@ -75,6 +137,9 @@ model Order {
   paymentStatus   String      @default("PENDING") // PENDING, PAID, CANCELLED
   orderStatus     String      @default("PENDING") // PENDING, PROCESSING, SHIPPED, COMPLETED, CANCELLED
   totalAmount     Decimal     @db.Decimal(10, 2)
+  pointsEarned    Int         @default(0)
+  pointsRedeemed  Int         @default(0)
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
   notes           String?     @db.Text
   items           OrderItem[]
   createdAt       DateTime    @default(now())

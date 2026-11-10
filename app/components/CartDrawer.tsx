@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ShoppingCart,
   X,
@@ -10,6 +11,8 @@ import {
   CreditCard,
   Smartphone,
   ArrowRight,
+  Sparkles,
+  Gift,
 } from "lucide-react";
 import { CartItem, PaymentMethod } from "../types/storefront";
 
@@ -33,7 +36,7 @@ interface CartDrawerProps {
   setPaymentMethod: (val: PaymentMethod) => void;
   orderSubmitting: boolean;
   orderError: string;
-  onSubmitOrder: (e: React.FormEvent) => void;
+  onSubmitOrder: (e: React.FormEvent, redeemPoints?: number) => void;
 }
 
 export default function CartDrawer({
@@ -58,7 +61,45 @@ export default function CartDrawer({
   orderError,
   onSubmitOrder,
 }: CartDrawerProps) {
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number | null>(null);
+  const [useLoyalty, setUseLoyalty] = useState(false);
+  const [checkingLoyalty, setCheckingLoyalty] = useState(false);
+
+  // Check loyalty points for customer
+  const handleCheckLoyalty = async () => {
+    const clean = customerPhone.replace(/[^0-9]/g, "");
+    if (clean.length < 10) return;
+    setCheckingLoyalty(true);
+    try {
+      const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(clean)}`);
+      const data = await res.json();
+      if (data?.customer?.points) {
+        setLoyaltyPoints(data.customer.points);
+      } else {
+        setLoyaltyPoints(0);
+      }
+    } catch {
+      setLoyaltyPoints(null);
+    } finally {
+      setCheckingLoyalty(false);
+    }
+  };
+
   if (!isOpen) return null;
+
+  // Calculate discount (1 pt = Rp 100, max 50% total)
+  const maxDiscount = Math.floor(totalCartPrice * 0.5);
+  const requestedDiscount = (loyaltyPoints || 0) * 100;
+  const actualDiscount = useLoyalty
+    ? Math.min(requestedDiscount, maxDiscount)
+    : 0;
+  const redeemedPoints = Math.floor(actualDiscount / 100);
+  const finalPaymentPrice = Math.max(0, totalCartPrice - actualDiscount);
+  const potentialEarnedPoints = Math.floor(finalPaymentPrice / 1000);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    onSubmitOrder(e, useLoyalty ? redeemedPoints : 0);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex justify-end">
@@ -99,62 +140,61 @@ export default function CartDrawer({
                 key={`${item.productId}-${item.variantId || "base"}`}
                 className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-stone-200/80 bg-stone-50/50 flex items-center justify-between gap-2.5 sm:gap-3"
               >
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  {item.productImage ? (
-                    <img
-                      src={item.productImage}
-                      alt={item.productName}
-                      className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover border border-stone-200 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-stone-200 flex items-center justify-center font-bold text-stone-400 text-[10px] sm:text-xs shrink-0">
-                      BC
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-[11px] sm:text-xs text-stone-900 truncate">
-                      {item.productName}
-                    </h4>
-                    {item.selectedSize && (
-                      <span className="inline-block mt-0.5 px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 text-[9px] sm:text-[10px] font-bold border border-rose-200/50">
-                        {item.selectedSize}
-                      </span>
-                    )}
-                    <div className="text-[11px] sm:text-xs font-mono font-bold text-rose-600 mt-0.5 sm:mt-1">
-                      Rp {item.price.toLocaleString("id-ID")}
-                    </div>
+                {item.productImage ? (
+                  <img
+                    src={item.productImage}
+                    alt={item.productName}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover border border-stone-200 shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-stone-200 text-stone-400 font-bold text-xs flex items-center justify-center shrink-0">
+                    BC
                   </div>
+                )}
+
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <h4 className="font-bold text-stone-900 text-xs sm:text-sm truncate">
+                    {item.productName}
+                  </h4>
+                  {item.selectedSize && (
+                    <span className="inline-block text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/60">
+                      Ukuran: {item.selectedSize}
+                    </span>
+                  )}
+                  <p className="text-[11px] sm:text-xs font-mono font-bold text-stone-700">
+                    Rp {item.price.toLocaleString("id-ID")}
+                  </p>
                 </div>
 
-                <div className="flex flex-col items-end gap-1.5 sm:gap-2 shrink-0">
-                  <button
-                    onClick={() => onRemoveItem(idx)}
-                    className="text-stone-300 hover:text-red-500 transition p-0.5 cursor-pointer"
-                    title="Hapus"
-                    aria-label="Hapus barang"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </button>
-
-                  <div className="flex items-center gap-1 bg-white border border-stone-200 rounded-md sm:rounded-lg p-0.5">
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex items-center border border-stone-200 rounded-lg bg-white overflow-hidden shadow-2xs">
                     <button
+                      type="button"
                       onClick={() => onUpdateQty(idx, item.quantity - 1)}
-                      className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded hover:bg-stone-100 text-stone-600 flex items-center justify-center font-bold text-[10px] sm:text-xs cursor-pointer"
-                      aria-label="Kurangi jumlah"
+                      className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-stone-500 hover:bg-stone-100 transition cursor-pointer"
                     >
                       <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </button>
-                    <span className="w-4 sm:w-5 text-center text-[10px] sm:text-xs font-bold font-mono">
+                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-stone-800 font-mono">
                       {item.quantity}
                     </span>
                     <button
+                      type="button"
                       onClick={() => onUpdateQty(idx, item.quantity + 1)}
-                      className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded hover:bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-[10px] sm:text-xs cursor-pointer"
-                      aria-label="Tambah jumlah"
+                      className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-stone-500 hover:bg-stone-100 transition cursor-pointer"
                     >
                       <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </button>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onRemoveItem(idx)}
+                    className="text-stone-400 hover:text-red-500 transition cursor-pointer p-0.5"
+                    title="Hapus barang"
+                  >
+                    <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  </button>
                 </div>
               </div>
             ))
@@ -164,20 +204,38 @@ export default function CartDrawer({
         {/* Cart Footer & Checkout Form */}
         {cart.length > 0 && (
           <div className="p-3 sm:p-5 border-t border-stone-100 bg-white space-y-2.5 sm:space-y-3.5 max-h-[55vh] overflow-y-auto">
+            {/* Price Breakdown */}
             <div className="space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs">
               <div className="flex justify-between text-stone-500">
-                <span>Subtotal:</span>
+                <span>Subtotal ({totalCartItems} barang):</span>
                 <span className="font-mono">Rp {totalCartPrice.toLocaleString("id-ID")}</span>
               </div>
               <div className="flex justify-between text-stone-500">
                 <span>Ongkos Kirim:</span>
                 <span className="font-bold text-emerald-600">GRATIS</span>
               </div>
+
+              {actualDiscount > 0 && (
+                <div className="flex justify-between text-emerald-600 font-bold">
+                  <span>Diskon Loyalty ({redeemedPoints} Pts):</span>
+                  <span className="font-mono">-Rp {actualDiscount.toLocaleString("id-ID")}</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-xs sm:text-sm font-extrabold text-stone-900 pt-1 border-t border-stone-100">
                 <span>Total Pembayaran:</span>
                 <span className="font-mono text-rose-600 text-sm sm:text-base">
-                  Rp {totalCartPrice.toLocaleString("id-ID")}
+                  Rp {finalPaymentPrice.toLocaleString("id-ID")}
                 </span>
+              </div>
+
+              {/* Points Earned Preview */}
+              <div className="flex items-center justify-between text-[10px] text-amber-700 bg-amber-50/80 px-2 py-1 rounded-lg border border-amber-200/50">
+                <span className="flex items-center gap-1 font-semibold">
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  Reward Pesanan Ini:
+                </span>
+                <span className="font-bold">+{potentialEarnedPoints} Poin</span>
               </div>
             </div>
 
@@ -188,7 +246,7 @@ export default function CartDrawer({
             )}
 
             {/* Direct Checkout Form inside Cart Drawer */}
-            <form onSubmit={onSubmitOrder} className="space-y-2 sm:space-y-3 pt-0.5 text-[11px] sm:text-xs">
+            <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3 pt-0.5 text-[11px] sm:text-xs">
               <div>
                 <label className="block font-semibold text-stone-700 mb-0.5 sm:mb-1 text-[10px] sm:text-xs">
                   Nama Penerima <span className="text-rose-500">*</span>
@@ -214,6 +272,7 @@ export default function CartDrawer({
                     placeholder="081234567890"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
+                    onBlur={handleCheckLoyalty}
                     className="w-full p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20 text-[11px] sm:text-sm"
                   />
                 </div>
@@ -228,6 +287,38 @@ export default function CartDrawer({
                   />
                 </div>
               </div>
+
+              {/* LOYALTY POINTS REDEMPTION WIDGET */}
+              {checkingLoyalty && (
+                <div className="text-[10px] text-stone-400 italic">
+                  Memeriksa saldo poin loyalty...
+                </div>
+              )}
+
+              {loyaltyPoints !== null && loyaltyPoints > 0 && (
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 text-stone-800 text-[10px] sm:text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1 text-rose-800">
+                      <Gift className="w-3.5 h-3.5 text-rose-600" />
+                      Saldo Poin: {loyaltyPoints} Pts
+                    </span>
+                    <label className="flex items-center gap-1 font-bold text-rose-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useLoyalty}
+                        onChange={(e) => setUseLoyalty(e.target.checked)}
+                        className="rounded text-rose-600 focus:ring-rose-500"
+                      />
+                      <span>Tukar Diskon</span>
+                    </label>
+                  </div>
+                  {useLoyalty && (
+                    <p className="text-[10px] text-emerald-700 font-semibold">
+                      ✓ Hemat Rp {actualDiscount.toLocaleString("id-ID")} dari {redeemedPoints} poin yang ditukarkan!
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block font-semibold text-stone-700 mb-0.5 sm:mb-1 text-[10px] sm:text-xs">

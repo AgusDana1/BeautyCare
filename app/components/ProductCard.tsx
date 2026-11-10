@@ -1,6 +1,7 @@
 "use client";
 
-import { ShoppingCart, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { ShoppingCart, ChevronRight, Star } from "lucide-react";
 import { Product, Variant } from "../types/storefront";
 
 interface ProductCardProps {
@@ -19,10 +20,22 @@ export default function ProductCard({
     ? Math.min(...product.variants.map((v) => v.price))
     : product.price;
 
+  const reviewCount = product.reviews ? product.reviews.length : 12;
+  const avgRating =
+    product.reviews && product.reviews.length > 0
+      ? (
+          product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+          product.reviews.length
+        ).toFixed(1)
+      : "4.9";
+
   return (
     <div className="group bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 shadow-2xs hover:shadow-xl hover:shadow-rose-900/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden">
-      {/* Product Image & Badges */}
-      <div className="relative aspect-square overflow-hidden bg-stone-100">
+      {/* Product Image & Badges with Link to Detail */}
+      <Link
+        href={`/product/${product.slug}`}
+        className="relative aspect-square overflow-hidden bg-stone-100 block cursor-pointer"
+      >
         {product.image ? (
           <img
             src={product.image}
@@ -56,14 +69,32 @@ export default function ProductCard({
             {product.stock === 0 ? "Habis" : `Tersedia ${product.stock}`}
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Product Details */}
       <div className="p-2.5 sm:p-5 flex flex-col flex-1 justify-between space-y-2 sm:space-y-4">
         <div className="space-y-1 sm:space-y-2">
-          <h3 className="font-bold text-stone-900 text-xs sm:text-base group-hover:text-rose-600 transition-colors line-clamp-1">
-            {product.name}
-          </h3>
+          {/* Review Star Snippet */}
+          <div className="flex items-center gap-1 text-[9px] sm:text-xs text-amber-600 font-bold">
+            <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+            <span>{avgRating}</span>
+            <span className="text-stone-400 font-normal">({reviewCount})</span>
+            {product.sellerBadge && (
+              <>
+                <span className="text-stone-300">•</span>
+                <span className="text-rose-600 font-semibold truncate text-[9px]">
+                  Official
+                </span>
+              </>
+            )}
+          </div>
+
+          <Link href={`/product/${product.slug}`} className="block">
+            <h3 className="font-bold text-stone-900 text-xs sm:text-base group-hover:text-rose-600 transition-colors line-clamp-1">
+              {product.name}
+            </h3>
+          </Link>
+
           <p className="text-[10px] sm:text-xs text-stone-500 line-clamp-2 leading-tight sm:leading-relaxed">
             {product.description}
           </p>
@@ -92,14 +123,14 @@ export default function ProductCard({
 
         {/* Price & Actions */}
         <div className="pt-2 sm:pt-3 border-t border-stone-100 flex items-center justify-between gap-1 sm:gap-2">
-          <div className="min-w-0">
+          <Link href={`/product/${product.slug}`} className="min-w-0">
             <span className="text-[8px] sm:text-[10px] text-stone-400 block font-medium">
               {hasVariants ? "Mulai" : "Harga"}
             </span>
-            <span className="font-extrabold text-stone-900 text-xs sm:text-base font-mono truncate block">
+            <span className="font-extrabold text-stone-900 text-xs sm:text-base font-mono truncate block hover:text-rose-600 transition">
               Rp {minPrice.toLocaleString("id-ID")}
             </span>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* Quick Add to Cart button */}

@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       paymentChannel,
       notes,
       items,
+      redeemPoints,
     } = body;
 
     if (
@@ -185,6 +186,91 @@ export async function POST(request: Request) {
       });
     }
 
+    // Process Loyalty Points & Discounts
+    let discountAmount = 0;
+    let pointsRedeemed = 0;
+    const cleanPhone = customerPhone.replace(/[^0-9]/g, "");
+
+    const loyaltyMember = await prisma.customerLoyalty.findFirst({
+      where: {
+        OR: [{ phone: cleanPhone }, { phone: customerPhone.trim() }],
+      },
+    });
+
+    if (redeemPoints && redeemPoints > 0 && loyaltyMember && loyaltyMember.points > 0) {
+      // 1 poin = Rp 100 potongan harga, maksimal 50% dari total belanja
+      const maxAllowedDiscount = Math.floor(totalAmount * 0.5);
+      const requestedDiscount = Math.min(redeemPoints * 100, loyaltyMember.points * 100);
+      discountAmount = Math.min(requestedDiscount, maxAllowedDiscount);
+      pointsRedeemed = Math.floor(discountAmount / 100);
+
+      // Potong poin dari akun loyalty
+      if (pointsRedeemed > 0) {
+        await prisma.customerLoyalty.update({
+          where: { id: loyaltyMember.id },
+          data: {
+            points: { decrement: pointsRedeemed },
+            history: {
+              create: {
+                points: -pointsRedeemed,
+                type: "REDEEM",
+                description: `Tukar ${pointsRedeemed} poin diskon pada pesanan ${invoiceNumber}`,
+              },
+            },
+          },
+        });
+      }
+    }
+
+    const finalTotalAmount = Math.max(0, totalAmount - discountAmount);
+    // Poin yang didapatkan: 1 poin tiap Rp 1.000 belanja
+    const pointsEarned = Math.floor(finalTotalAmount / 1000);
+
+    // Update / create member loyalty untuk poin yang diperoleh
+    if (pointsEarned > 0) {
+      if (loyaltyMember) {
+        const newTotalSpent = Number(loyaltyMember.totalSpent) + finalTotalAmount;
+        let newTier = loyaltyMember.tier;
+        if (newTotalSpent >= 1500000) newTier = "PLATINUM";
+        else if (newTotalSpent >= 500000) newTier = "GOLD";
+
+        await prisma.customerLoyalty.update({
+          where: { id: loyaltyMember.id },
+          data: {
+            points: { increment: pointsEarned },
+            totalSpent: newTotalSpent,
+            tier: newTier,
+            name: customerName.trim(),
+            history: {
+              create: {
+                points: pointsEarned,
+                type: "EARN",
+                description: `Poin dari transaksi pesanan ${invoiceNumber}`,
+              },
+            },
+          },
+        });
+      } else {
+        await prisma.customerLoyalty.create({
+          data: {
+            phone: cleanPhone || customerPhone.trim(),
+            name: customerName.trim(),
+            email: customerEmail?.trim() || null,
+            points: pointsEarned,
+            tier: "SILVER",
+            totalSpent: finalTotalAmount,
+            history: {
+              create: {
+                points: pointsEarned,
+                type: "EARN",
+                description: `Poin transaksi pertama pada pesanan ${invoiceNumber}`,
+              },
+            },
+          },
+        });
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         invoiceNumber,
@@ -196,7 +282,10 @@ export async function POST(request: Request) {
         paymentChannel: paymentChannel || paymentMethod,
         paymentStatus: "PENDING",
         orderStatus: "PENDING",
-        totalAmount,
+        totalAmount: finalTotalAmount,
+        discountAmount,
+        pointsEarned,
+        pointsRedeemed,
         notes: notes?.trim() || null,
         items: {
           create: orderItemsData,

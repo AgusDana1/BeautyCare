@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, ShoppingCart, ShoppingBag } from "lucide-react";
+import { Sparkles, ShoppingCart, ShoppingBag, Gift, BookOpen } from "lucide-react";
 
 interface NavbarProps {
   totalCartItems: number;
@@ -15,7 +15,7 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
       <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-3 text-center font-medium tracking-wide flex items-center justify-center gap-1 sm:gap-2">
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
         <span className="truncate sm:overflow-visible">
-          Promo Spesial: Gratis Ongkir Seluruh Indonesia &amp; Diskon Varian Ukuran (ml)
+          Promo Repurchase: Kumpulkan Poin Loyalty &amp; Gratis Ongkir Se-Indonesia
         </span>
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
       </div>
@@ -42,19 +42,34 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           </Link>
 
           {/* Nav Links */}
-          <div className="flex items-center gap-3 sm:gap-6 lg:gap-8 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-stone-600">
-            <a
-              href="#katalog"
+          <div className="flex items-center gap-2 sm:gap-5 lg:gap-7 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-stone-600">
+            <Link
+              href="/#katalog"
               className="hidden sm:inline-block hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
-              Katalog Produk
-            </a>
-            <a
-              href="#faq"
+              Katalog
+            </Link>
+            <Link
+              href="/#loyalty"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer flex items-center gap-1"
+            >
+              <Gift className="w-3 h-3 text-rose-500" />
+              <span className="hidden xs:inline">Loyalty</span>
+              <span className="xs:hidden">Poin</span>
+            </Link>
+            <Link
+              href="/#edukasi"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer flex items-center gap-1"
+            >
+              <BookOpen className="w-3 h-3 text-rose-500" />
+              <span>Edukasi</span>
+            </Link>
+            <Link
+              href="/#faq"
               className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
               FAQ
-            </a>
+            </Link>
           </div>
 
           {/* Right Action Area */}
@@ -74,14 +89,14 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
               </button>
             )}
 
-            <a
-              href="#katalog"
+            <Link
+              href="/#katalog"
               className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm sm:shadow-md shadow-rose-500/25 flex items-center gap-1 sm:gap-2 group cursor-pointer shrink-0"
             >
               <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:rotate-12 transition-transform duration-200" />
               <span className="hidden xs:inline sm:inline">Belanja</span>
               <span className="hidden sm:inline">Sekarang</span>
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
