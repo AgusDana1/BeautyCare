@@ -41,19 +41,19 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
             </div>
           </Link>
 
-          {/* Nav Links (Desktop & Tablet) */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-8 text-xs font-semibold uppercase tracking-wider text-stone-600">
+          {/* Nav Links */}
+          <div className="flex items-center gap-3 sm:gap-6 lg:gap-8 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-stone-600">
             <a
               href="#katalog"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300"
+              className="hidden sm:inline-block hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
               Katalog Produk
             </a>
             <a
-              href="#keunggulan"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300"
+              href="#faq"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
-              Keunggulan
+              FAQ
             </a>
           </div>
 

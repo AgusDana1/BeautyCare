@@ -88,10 +88,10 @@ export default function HeroSlider({
                   </a>
 
                   <a
-                    href="#keunggulan"
+                    href="#faq"
                     className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold text-[11px] sm:text-sm border border-white/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1 sm:gap-2 cursor-pointer"
                   >
-                    <span>Keunggulan</span>
+                    <span>FAQ &amp; Bantuan</span>
                   </a>
                 </div>
 

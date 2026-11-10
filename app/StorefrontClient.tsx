@@ -20,6 +20,7 @@ import CatalogFilters from "./components/CatalogFilters";
 import ProductCard from "./components/ProductCard";
 import CartDrawer from "./components/CartDrawer";
 import OrderModal from "./components/OrderModal";
+import FaqSection from "./components/FaqSection";
 import Footer from "./components/Footer";
 
 interface Props {
@@ -503,6 +504,9 @@ export default function StorefrontClient({
           )}
         </div>
       </section>
+
+      {/* Modular FAQ Section with Smooth Scrolling */}
+      <FaqSection />
 
       {/* Modular Footer */}
       <Footer categories={initialCategories} onSelectCategory={setSelectedCategory} />

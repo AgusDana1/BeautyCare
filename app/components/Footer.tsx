@@ -167,9 +167,9 @@ export default function Footer({ categories, onSelectCategory }: FooterProps) {
             © 2026 BeautyCare Indonesia. Hak Cipta Dilindungi.
           </p>
           <div className="flex items-center gap-3 sm:gap-6 text-[10px] sm:text-[11px] text-center">
-            <span className="hover:text-stone-400 transition-colors">Kebijakan Privasi</span>
-            <span className="hover:text-stone-400 transition-colors">Syarat &amp; Ketentuan</span>
-            <span className="hover:text-stone-400 transition-colors">Bantuan</span>
+            <a href="#faq" className="hover:text-stone-300 transition-colors">FAQ &amp; Bantuan</a>
+            <span className="hover:text-stone-300 transition-colors">Kebijakan Privasi</span>
+            <span className="hover:text-stone-300 transition-colors">Syarat &amp; Ketentuan</span>
           </div>
         </div>
       </div>
