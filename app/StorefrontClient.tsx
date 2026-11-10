@@ -427,8 +427,8 @@ export default function StorefrontClient({
     <div className="min-h-screen bg-[#faf7f5] text-stone-800 flex flex-col selection:bg-rose-200">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-4 sm:top-20 right-4 sm:right-5 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-stone-800 flex items-center gap-2 animate-fade-in-up">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="fixed top-3 sm:top-20 right-3 sm:right-5 z-50 bg-stone-900 text-white text-[11px] sm:text-xs font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl border border-stone-800 flex items-center gap-1.5 sm:gap-2 animate-fade-in-up">
+          <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -451,8 +451,8 @@ export default function StorefrontClient({
       <FeatureHighlights />
 
       {/* Product Catalog & Filters Section */}
-      <section id="katalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full flex-1">
-        <div className="space-y-6 sm:space-y-8">
+      <section id="katalog" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full flex-1">
+        <div className="space-y-4 sm:space-y-8">
           {/* Modular Filters */}
           <CatalogFilters
             categories={initialCategories}
@@ -470,12 +470,12 @@ export default function StorefrontClient({
 
           {/* Product Cards Grid */}
           {filteredProducts.length === 0 ? (
-            <div className="bg-white rounded-3xl p-10 sm:p-16 text-center border border-stone-200/80 shadow-xs space-y-3">
-              <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
-                <Search className="w-6 h-6" />
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-16 text-center border border-stone-200/80 shadow-xs space-y-2 sm:space-y-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-base font-bold text-stone-900">Tidak ada produk yang cocok</h3>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              <h3 className="text-sm sm:text-base font-bold text-stone-900">Tidak ada produk yang cocok</h3>
+              <p className="text-[11px] sm:text-xs text-stone-500 max-w-sm mx-auto">
                 Coba ubah kata kunci pencarian atau sesuaikan filter kategori dan filter ukuran ml Anda.
               </p>
               <button
@@ -484,13 +484,13 @@ export default function StorefrontClient({
                   setSearchQuery("");
                   setSelectedSizeFilter("ALL");
                 }}
-                className="mt-2 text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                className="mt-1 sm:mt-2 text-[11px] sm:text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
               >
                 Reset Semua Filter
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

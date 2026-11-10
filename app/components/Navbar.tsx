@@ -12,30 +12,30 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
   return (
     <>
       {/* Top Banner Announcement */}
-      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[11px] sm:text-xs py-2 px-3 text-center font-medium tracking-wide flex items-center justify-center gap-1.5 sm:gap-2">
-        <Sparkles className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-3 text-center font-medium tracking-wide flex items-center justify-center gap-1 sm:gap-2">
+        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
         <span className="truncate sm:overflow-visible">
           Promo Spesial: Gratis Ongkir Seluruh Indonesia &amp; Diskon Varian Ukuran (ml)
         </span>
-        <Sparkles className="w-3.5 h-3.5 shrink-0 animate-pulse" />
+        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
       </div>
 
       {/* Main Sticky Navbar */}
       <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200/60 shadow-xs transition-all duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-13 sm:h-18 flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Brand Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 sm:gap-2.5 group transition-transform duration-300 hover:scale-105 shrink-0"
+            className="flex items-center gap-1.5 sm:gap-2.5 group transition-transform duration-300 hover:scale-105 shrink-0"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-md shadow-rose-500/20 group-hover:rotate-6 transition-all duration-300">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse-glow" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-sm sm:shadow-md shadow-rose-500/20 group-hover:rotate-6 transition-all duration-300">
+              <Sparkles className="w-3.5 h-3.5 sm:w-5 sm:h-5 animate-pulse-glow" />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-stone-900 group-hover:text-rose-600 transition-colors">
+              <span className="font-extrabold text-base sm:text-xl tracking-tight text-stone-900 group-hover:text-rose-600 transition-colors">
                 BeautyCare<span className="text-rose-500">.</span>
               </span>
-              <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-stone-400 font-semibold -mt-1">
+              <span className="text-[8px] sm:text-[10px] tracking-widest uppercase text-stone-400 font-semibold -mt-1">
                 Aesthetic &amp; Skin
               </span>
             </div>
@@ -58,17 +58,17 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           </div>
 
           {/* Right Action Area */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* REQUIREMENT: TAMPILKAN ICON KERANJANG DI NAVBAR BILA USER SUDAH MEMESAN / MEMILIH BARANG LEBIH DARI 1 */}
             {totalCartItems > 1 && (
               <button
                 onClick={onOpenCart}
-                className="relative p-2 sm:p-2.5 rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center animate-fade-in-up group"
+                className="relative p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-xs sm:shadow-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center animate-fade-in-up group"
                 aria-label="Keranjang Belanja"
                 title={`Keranjang Belanja (${totalCartItems} barang)`}
               >
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 group-hover:rotate-6 transition-transform" />
-                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] sm:min-w-[20px] h-4.5 sm:h-5 px-1 bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[9px] sm:text-[10px] font-black rounded-full flex items-center justify-center shadow-md shadow-rose-600/30 animate-pulse">
+                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 min-w-[16px] sm:min-w-[20px] h-4 sm:h-5 px-1 bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[8px] sm:text-[10px] font-black rounded-full flex items-center justify-center shadow-xs sm:shadow-md shadow-rose-600/30 animate-pulse">
                   {totalCartItems}
                 </span>
               </button>
@@ -76,9 +76,9 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
 
             <a
               href="#katalog"
-              className="px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md shadow-rose-500/25 flex items-center gap-1.5 sm:gap-2 group cursor-pointer shrink-0"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm sm:shadow-md shadow-rose-500/25 flex items-center gap-1 sm:gap-2 group cursor-pointer shrink-0"
             >
-              <ShoppingBag className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform duration-200" />
+              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:rotate-12 transition-transform duration-200" />
               <span className="hidden xs:inline sm:inline">Belanja</span>
               <span className="hidden sm:inline">Sekarang</span>
             </a>
