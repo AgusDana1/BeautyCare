@@ -41,11 +41,11 @@ export default function Footer({ categories, onSelectCategory }: FooterProps) {
             <div className="space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs text-stone-400 pt-0.5 sm:pt-1">
               <div className="flex items-start gap-1.5 sm:gap-2">
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 shrink-0 mt-0.5" />
-                <span>Jl. Senopati Raya No. 45, Jakarta Selatan</span>
+                <span>Jl. Bukit Tunggal Gg Belawa No. 9, Denpasar Barat</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
-                <span>WhatsApp CS: 0812-3456-7890</span>
+                <span>WhatsApp CS: 0881-0383-22937</span>
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 shrink-0" />

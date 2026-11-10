@@ -97,7 +97,7 @@ export default function InvoiceClientView({ order }: { order: OrderData }) {
               Klinik & Toko Produk Perawatan Kulit Premium
             </p>
             <p className="text-xs text-stone-500">
-              Jl. Senopati Raya No. 45, Jakarta Selatan | Telp: (021) 7890-1234
+              Jl. Bukit Tunggal Gg Belawa No. 9, Denpasar Barat | Telp: (0361) 4848-23
             </p>
           </div>
 

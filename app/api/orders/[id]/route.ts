@@ -42,14 +42,14 @@ export async function GET(
     }
 
     if (!order) {
-      return NextResponse.json({ error: "Pesanan tidak ditemukan" }, { status: 404 });
+      return NextResponse.json({ error: "Orders not found"}, { status: 404});
     }
 
     return NextResponse.json(order);
   } catch (error) {
     console.error("Error fetching order:", error);
     return NextResponse.json(
-      { error: "Gagal memuat detail pesanan" },
+      { error: "Failed to fetch order" },
       { status: 500 }
     );
   }
@@ -91,7 +91,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating order:", error);
     return NextResponse.json(
-      { error: "Gagal memperbarui status pesanan" },
+      { error: "Failed to update order status" },
       { status: 500 }
     );
   }

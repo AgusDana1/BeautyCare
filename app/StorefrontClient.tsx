@@ -352,7 +352,7 @@ export default function StorefrontClient({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Gagal memproses pesanan");
+        throw new Error (data.error || "Failed to process order");
       }
 
       router.push(`/order/${data.invoiceNumber}`);
@@ -402,9 +402,9 @@ export default function StorefrontClient({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Gagal memproses pesanan keranjang");
+        throw new Error(data.error || "Failed to process cart order");
       }
-
+      
       // Clear cart
       updateCart([]);
       setIsCartOpen(false);

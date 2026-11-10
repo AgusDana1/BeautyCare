@@ -213,7 +213,7 @@ export default function FaqSection() {
         </div>
 
         <a
-          href="https://wa.me/6281234567890?text=Halo%20BeautyCare,%20saya%20ingin%20bertanya%20seputar%20produk%20dan%20pemesanan"
+          href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20bertanya%20seputar%20produk%20dan%20pemesanan"
           target="_blank"
           rel="noopener noreferrer"
           className="px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] sm:text-xs shadow-md shadow-emerald-600/25 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 shrink-0 cursor-pointer"
