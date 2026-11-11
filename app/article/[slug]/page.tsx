@@ -10,6 +10,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  await connection();
   const { slug } = await params;
   const article = await prisma.article.findUnique({
     where: { slug },

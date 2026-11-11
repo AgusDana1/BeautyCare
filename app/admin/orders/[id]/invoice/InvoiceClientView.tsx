@@ -28,8 +28,12 @@ interface OrderData {
   paymentStatus: string;
   orderStatus: string;
   totalAmount: number;
+  pointsEarned?: number;
+  pointsRedeemed?: number;
+  discountAmount?: number;
   notes: string | null;
   createdAt: Date | string;
+  updatedAt?: Date | string;
   items: OrderItem[];
 }
 
@@ -247,8 +251,20 @@ export default function InvoiceClientView({ order }: { order: OrderData }) {
           <div className="w-full sm:w-72 space-y-2 text-sm">
             <div className="flex justify-between text-stone-600">
               <span>Subtotal Produk:</span>
-              <span className="font-mono">Rp {order.totalAmount.toLocaleString("id-ID")}</span>
+              <span className="font-mono">
+                Rp{" "}
+                {(
+                  order.items.reduce((sum, item) => sum + item.subtotal, 0) ||
+                  order.totalAmount + (order.discountAmount || 0)
+                ).toLocaleString("id-ID")}
+              </span>
             </div>
+            {order.discountAmount && order.discountAmount > 0 ? (
+              <div className="flex justify-between text-emerald-600 font-medium">
+                <span>Diskon Loyalty Poin:</span>
+                <span className="font-mono">- Rp {order.discountAmount.toLocaleString("id-ID")}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between text-stone-600">
               <span>Ongkos Kirim:</span>
               <span className="font-mono text-emerald-600 font-semibold">GRATIS</span>

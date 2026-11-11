@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
-  Printer,
   Copy,
   Check,
   ArrowLeft,
@@ -38,6 +37,9 @@ interface OrderData {
   paymentStatus: string;
   orderStatus: string;
   totalAmount: number;
+  discountAmount?: number;
+  pointsEarned?: number;
+  pointsRedeemed?: number;
   notes: string | null;
   createdAt: string | Date;
   items: OrderItem[];
@@ -88,15 +90,7 @@ export default function OrderConfirmationClient({
             className="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-stone-600 hover:text-rose-600 bg-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-stone-200/80 shadow-2xs transition-all duration-200 hover:scale-105"
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Katalog</span>
-          </Link>
-
-          <Link
-            href={`/admin/orders/${order.id}/invoice`}
-            className="inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl shadow-xs sm:shadow-md transition-all duration-200 hover:scale-105"
-          >
-            <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Cetak Invoice</span>
+            <span>Kembali ke Katalog</span>
           </Link>
         </div>
 
@@ -332,12 +326,30 @@ export default function OrderConfirmationClient({
           <div className="pt-3 sm:pt-4 border-t border-stone-100 space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs">
             <div className="flex justify-between text-stone-500">
               <span>Subtotal:</span>
-              <span className="font-mono">Rp {order.totalAmount.toLocaleString("id-ID")}</span>
+              <span className="font-mono">
+                Rp{" "}
+                {(
+                  order.items.reduce((sum, item) => sum + item.subtotal, 0) ||
+                  order.totalAmount + (order.discountAmount || 0)
+                ).toLocaleString("id-ID")}
+              </span>
             </div>
+            {order.discountAmount && order.discountAmount > 0 ? (
+              <div className="flex justify-between text-emerald-600 font-medium">
+                <span>Diskon Loyalty Poin:</span>
+                <span className="font-mono">- Rp {order.discountAmount.toLocaleString("id-ID")}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between text-stone-500">
               <span>Ongkos Kirim:</span>
               <span className="text-emerald-600 font-bold">GRATIS</span>
             </div>
+            {order.pointsEarned && order.pointsEarned > 0 ? (
+              <div className="flex justify-between text-amber-600 font-medium">
+                <span>Poin Diperoleh:</span>
+                <span>+{order.pointsEarned} Poin</span>
+              </div>
+            ) : null}
             <div className="flex justify-between items-center pt-2 border-t border-stone-100 text-xs sm:text-sm font-bold text-stone-900">
               <span>Total:</span>
               <span className="font-mono text-sm sm:text-lg text-rose-600">

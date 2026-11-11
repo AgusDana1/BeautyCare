@@ -40,6 +40,9 @@ async function OrderConfirmationContent({
   const sanitizedOrder = {
     ...order,
     totalAmount: Number(order.totalAmount),
+    discountAmount: Number(order.discountAmount || 0),
+    createdAt: order.createdAt.toISOString(),
+    updatedAt: order.updatedAt.toISOString(),
     items: order.items.map((item) => ({
       ...item,
       price: Number(item.price),
@@ -47,6 +50,8 @@ async function OrderConfirmationContent({
       product: {
         ...item.product,
         price: Number(item.product.price),
+        createdAt: item.product.createdAt.toISOString(),
+        updatedAt: item.product.updatedAt.toISOString(),
       },
       variant: item.variant
         ? {

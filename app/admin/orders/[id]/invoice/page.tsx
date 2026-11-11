@@ -1,11 +1,17 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentAdmin } from "@/lib/auth";
 import InvoiceClientView from "./InvoiceClientView";
 
 async function InvoiceContent({ params }: { params: Promise<{ id: string }> }) {
   await connection();
+
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    redirect("/admin/login");
+  }
 
   const { id } = await params;
   const numericId = parseInt(id, 10);
@@ -27,22 +33,33 @@ async function InvoiceContent({ params }: { params: Promise<{ id: string }> }) {
   }
 
   const sanitizedOrder = {
-    ...order,
+    id: order.id,
+    invoiceNumber: order.invoiceNumber,
+    customerName: order.customerName,
+    customerEmail: order.customerEmail,
+    customerPhone: order.customerPhone,
+    customerAddress: order.customerAddress,
+    paymentMethod: order.paymentMethod,
+    paymentChannel: order.paymentChannel,
+    paymentStatus: order.paymentStatus,
+    orderStatus: order.orderStatus,
     totalAmount: Number(order.totalAmount),
+    pointsEarned: order.pointsEarned,
+    pointsRedeemed: order.pointsRedeemed,
+    discountAmount: Number(order.discountAmount || 0),
+    notes: order.notes,
+    createdAt: order.createdAt.toISOString(),
+    updatedAt: order.updatedAt.toISOString(),
     items: order.items.map((item) => ({
-      ...item,
+      id: item.id,
+      selectedSize: item.selectedSize,
+      quantity: item.quantity,
       price: Number(item.price),
       subtotal: Number(item.subtotal),
       product: {
-        ...item.product,
-        price: Number(item.product.price),
+        name: item.product.name,
+        image: item.product.image,
       },
-      variant: item.variant
-        ? {
-            ...item.variant,
-            price: Number(item.variant.price),
-          }
-        : null,
     })),
   };
 
