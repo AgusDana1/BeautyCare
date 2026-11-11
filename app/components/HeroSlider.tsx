@@ -6,6 +6,7 @@ import { HeroSlide } from "../types/storefront";
 interface HeroSliderProps {
   slides: HeroSlide[];
   currentSlide: number;
+  isLoading?: boolean;
   onSelectSlide: (index: number) => void;
   onNext: () => void;
   onPrev: () => void;
@@ -16,12 +17,28 @@ interface HeroSliderProps {
 export default function HeroSlider({
   slides,
   currentSlide,
+  isLoading = false,
   onSelectSlide,
   onNext,
   onPrev,
   onPauseToggle,
   onSelectCategory,
 }: HeroSliderProps) {
+  if (isLoading || !slides || slides.length === 0) {
+    return (
+      <section className="relative overflow-hidden w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-6 pb-4 sm:pb-10">
+        <div className="relative rounded-2xl sm:rounded-4xl overflow-hidden shadow-xl sm:shadow-2xl border border-stone-200/70 aspect-[4/4.2] sm:aspect-[16/9] md:aspect-[21/9] min-h-[340px] sm:min-h-[480px] md:min-h-[520px] bg-stone-900/95 flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-10 h-10 border-3 border-rose-500 border-t-transparent rounded-full animate-spin mb-3" />
+          <span className="text-xs sm:text-sm font-semibold text-stone-200">
+            Memuat Promo &amp; Rekomendasi Unggulan...
+          </span>
+          <span className="text-[10px] sm:text-xs text-stone-400 mt-1">
+            Mengambil data dari katalog resmi BeautyCare
+          </span>
+        </div>
+      </section>
+    );
+  }
   return (
     <section
       className="relative overflow-hidden w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-6 pb-4 sm:pb-10"

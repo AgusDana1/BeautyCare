@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "category": "produk",
+    "icon": "ShieldCheck",
+    "question": "Apakah semua produk BeautyCare 100% original dan bersertifikasi BPOM?",
+    "answer": "Ya, seluruh produk kami dijamin 100% original dan telah tersertifikasi resmi oleh BPOM. Formula yang digunakan teruji secara klinis dan dermatologis sehingga sangat aman untuk perawatan harian, termasuk bagi pemilik kulit sensitif."
+  },
+  {
+    "id": 2,
+    "category": "produk",
+    "icon": "Droplets",
+    "question": "Bagaimana cara memilih varian ukuran (ml) pada produk?",
+    "answer": "Cukup klik tombol 'Pesan' pada produk yang diinginkan. Jika produk memiliki variasi ml (misalnya 30ml, 50ml, atau 100ml+), pilihan ukuran (ml) akan otomatis muncul pada formulir dengan rincian harga dan stok realtime. Jika produk adalah ukuran standar (seperti Beauty Tools), opsi ml otomatis disembunyikan."
+  },
+  {
+    "id": 3,
+    "category": "pembayaran",
+    "icon": "CreditCard",
+    "question": "Metode pembayaran apa saja yang didukung? Apakah bisa scan QRIS?",
+    "answer": "Kami mendukung 3 kanal pembayaran: (1) QRIS Standar Nasional dengan barcode yang bisa discan langsung dari BCA, Mandiri, GoPay, OVO, DANA, dan ShopeePay; (2) Transfer Bank Resmi (BCA, Mandiri, BNI, BRI); dan (3) E-Wallet langsung."
+  },
+  {
+    "id": 4,
+    "category": "pembayaran",
+    "icon": "Sparkles",
+    "question": "Apakah invoice atau faktur resmi otomatis dibuat setelah memesan?",
+    "answer": "Tentu. Begitu pesanan Anda dikonfirmasi, sistem akan otomatis menerbitkan Nomor Faktur resmi. Anda dapat langsung mengklik tombol 'Cetak / Unduh Invoice' untuk mencetak atau menyimpannya sebagai dokumen resmi transaksi."
+  },
+  {
+    "id": 5,
+    "category": "produk",
+    "icon": "Sparkles",
+    "question": "Bagaimana cara membeli lebih dari 1 produk sekaligus?",
+    "answer": "Gunakan tombol '+ Keranjang' pada masing-masing produk yang Anda inginkan. Icon keranjang belanja akan selalu tersedia di navbar atas bila ada barang yang dipilih. Anda dapat mengklik icon tersebut untuk checkout sekaligus."
+  },
+  {
+    "id": 6,
+    "category": "pengiriman",
+    "icon": "Truck",
+    "question": "Berapa lama estimasi pengiriman dan bagaimana jaminan keamanannya?",
+    "answer": "Pengiriman diproses setiap hari dengan estimasi 1-3 hari kerja untuk wilayah Jabodetabek dan 2-5 hari untuk luar kota/pulau. Semua pesanan dikemas dengan bubble wrap tebal dan kotak pelindung gratis tanpa biaya tambahan."
+  }
+]

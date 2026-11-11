@@ -32,61 +32,6 @@ interface Props {
   initialArticles?: Article[];
 }
 
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=1600&auto=format&fit=crop&q=85",
-    badge: "Koleksi Eksklusif 2026 • Kemurnian Alami",
-    title: "Kemurnian Perawatan Alami untuk Kulit Sehat Berseri",
-    description:
-      "Serum & formula dermatologis murni untuk hidrasi maksimal, mencerahkan pori, dan memperkuat skin barrier secara alami.",
-    primaryCta: "Jelajahi Produk Pilihan",
-    targetCategory: "ALL",
-    statBadge: "Teruji Klinis BPOM",
-    statSub: "Aman untuk Kulit Sensitif",
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=1600&auto=format&fit=crop&q=85",
-    badge: "Pilihan Ukuran Fleksibel • Filter per ml",
-    title: "Pilih Ukuran (ml) Favorit Sesuai Kebutuhan Anda",
-    description:
-      "Tiap produk dilengkapi varian ukuran 30ml, 50ml, hingga 100ml+ yang dapat dipilih langsung saat Anda mengklik Pesan Sekarang.",
-    primaryCta: "Pesan Sesuai Ukuran",
-    targetCategory: "serum-treatment",
-    statBadge: "Pilihan 30ml - 400ml",
-    statSub: "Harga & Stok Otomatis",
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1600&auto=format&fit=crop&q=85",
-    badge: "Pembersih Wajah Lembut • Cerah Alami",
-    title: "Pembersih Wajah Busa Lembut & Niacinamide",
-    description:
-      "Formula busa mikro amino acid yang mengangkat kotoran pori secara mendalam tanpa membuat kulit kering tertarik.",
-    primaryCta: "Lihat Koleksi Skincare",
-    targetCategory: "skincare",
-    statBadge: "pH Alami Kulit 5.5",
-    statSub: "Busa Lembut & Segar",
-  },
-  {
-    id: 4,
-    image:
-      "https://images.unsplash.com/photo-1643716991736-b83d4bf474b4?w=1600&auto=format&fit=crop&q=85",
-    badge: "Perawatan Tubuh & Rambut Mewah",
-    title: "Kelembutan Velvet Lotion & Nutrisi Argan Alami",
-    description:
-      "Manjakan diri dengan aroma mewah tahan lama dan nutrisi pelembap mendalam untuk kelembutan tubuh dan rambut berkilau.",
-    primaryCta: "Jelajahi Body & Hair Care",
-    targetCategory: "body-care",
-    statBadge: "Kelembapan 48 Jam",
-    statSub: "Wangi Bunga Sakura Mewah",
-  },
-];
-
 const CART_STORAGE_KEY = "beautycare_cart";
 
 const subscribeCart = (callback: () => void) => {
@@ -119,9 +64,49 @@ export default function StorefrontClient({
 }: Props) {
   const router = useRouter();
 
-  // Carousel State
+  // Carousel State - dynamic fetching from JSON
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [isLoadingSlides, setIsLoadingSlides] = useState<boolean>(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSliderPaused, setIsSliderPaused] = useState(false);
+
+  // Fetch Hero Slides from JSON
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchHeroSlides() {
+      try {
+        setIsLoadingSlides(true);
+        const res = await fetch("/api/hero-slides");
+        if (!res.ok) {
+          throw new Error("Gagal mengambil data hero slides");
+        }
+        const data: HeroSlide[] = await res.json();
+        if (isMounted) {
+          setSlides(data);
+        }
+      } catch (err) {
+        console.error("Error fetching hero slides via API, fallback to static JSON:", err);
+        try {
+          const fallbackRes = await fetch("/data/hero-slides.json");
+          if (fallbackRes.ok && isMounted) {
+            const fallbackData: HeroSlide[] = await fallbackRes.json();
+            setSlides(fallbackData);
+          }
+        } catch (fallbackErr) {
+          console.error("Error fetching fallback JSON:", fallbackErr);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSlides(false);
+        }
+      }
+    }
+
+    fetchHeroSlides();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Filters State
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -187,21 +172,23 @@ export default function StorefrontClient({
 
   // Slide navigation
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-  }, []);
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
-  }, []);
+    if (slides.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
 
   // Auto-play slider with pause on hover/touch
   useEffect(() => {
-    if (isSliderPaused) return;
+    if (isSliderPaused || slides.length === 0) return;
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(interval);
-  }, [isSliderPaused, nextSlide]);
+  }, [isSliderPaused, nextSlide, slides.length]);
 
   // Extract all available sizes across products for the global size filter
   const allSizes = useMemo(() => {
@@ -452,7 +439,8 @@ export default function StorefrontClient({
 
       {/* Modular Hero Carousel Section */}
       <HeroSlider
-        slides={HERO_SLIDES}
+        slides={slides}
+        isLoading={isLoadingSlides}
         currentSlide={currentSlide}
         onSelectSlide={setCurrentSlide}
         onNext={nextSlide}
