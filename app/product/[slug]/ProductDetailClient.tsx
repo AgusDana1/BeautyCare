@@ -321,7 +321,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-stone-700/50 flex items-center gap-2.5 text-xs sm:text-sm animate-bounce">
+        <div className="fixed top-20 right-4 sm:right-8 z-[70] bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-stone-700/50 flex items-center gap-2.5 text-xs sm:text-sm animate-bounce">
           <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>

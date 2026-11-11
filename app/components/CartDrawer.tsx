@@ -125,7 +125,7 @@ export default function CartDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex justify-end animate-fade-in cursor-pointer"
+      className="fixed inset-0 z-[60] bg-stone-900/60 backdrop-blur-xs flex justify-end animate-fade-in cursor-pointer"
       onClick={onClose}
       aria-modal="true"
       role="dialog"

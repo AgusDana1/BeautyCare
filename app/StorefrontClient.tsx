@@ -428,7 +428,7 @@ export default function StorefrontClient({
     <div className="min-h-screen bg-[#faf7f5] text-stone-800 flex flex-col selection:bg-rose-200">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-3 sm:top-20 right-3 sm:right-5 z-50 bg-stone-900 text-white text-[11px] sm:text-xs font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl border border-stone-800 flex items-center gap-1.5 sm:gap-2 animate-fade-in-up">
+        <div className="fixed top-3 sm:top-20 right-3 sm:right-5 z-[70] bg-stone-900 text-white text-[11px] sm:text-xs font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl border border-stone-800 flex items-center gap-1.5 sm:gap-2 animate-fade-in-up">
           <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>

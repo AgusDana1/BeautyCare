@@ -130,7 +130,7 @@ export default function OrderModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto animate-fade-in cursor-pointer"
+      className="fixed inset-0 z-[60] bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-6 overflow-y-auto animate-fade-in cursor-pointer"
       onClick={onClose}
       aria-modal="true"
       role="dialog"
