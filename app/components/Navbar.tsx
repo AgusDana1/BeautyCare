@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, ShoppingCart, ShoppingBag, Gift, BookOpen } from "lucide-react";
+import { Sparkles, ShoppingCart, ShoppingBag } from "lucide-react";
 
 interface NavbarProps {
   totalCartItems: number;
@@ -41,28 +41,25 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
             </div>
           </Link>
 
-          {/* Nav Links */}
-          <div className="flex items-center gap-2 sm:gap-5 lg:gap-7 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-stone-600">
+          {/* Nav Links: Consistent clean typography without icons */}
+          <div className="flex items-center gap-2.5 sm:gap-6 lg:gap-8 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-stone-600">
             <Link
               href="/#katalog"
-              className="hidden sm:inline-block hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
               Katalog
             </Link>
             <Link
               href="/#loyalty"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer flex items-center gap-1"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
-              <Gift className="w-3 h-3 text-rose-500" />
-              <span className="hidden xs:inline">Loyalty</span>
-              <span className="xs:hidden">Poin</span>
+              Loyalty Poin
             </Link>
             <Link
               href="/#edukasi"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer flex items-center gap-1"
+              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
             >
-              <BookOpen className="w-3 h-3 text-rose-500" />
-              <span>Edukasi</span>
+              Edukasi
             </Link>
             <Link
               href="/#faq"
@@ -74,20 +71,24 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
 
           {/* Right Action Area */}
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* REQUIREMENT: TAMPILKAN ICON KERANJANG DI NAVBAR BILA USER SUDAH MEMESAN / MEMILIH BARANG LEBIH DARI 1 */}
-            {totalCartItems > 1 && (
-              <button
-                onClick={onOpenCart}
-                className="relative p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-xs sm:shadow-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center animate-fade-in-up group"
-                aria-label="Keranjang Belanja"
-                title={`Keranjang Belanja (${totalCartItems} barang)`}
-              >
-                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 group-hover:rotate-6 transition-transform" />
+            {/* Cart Icon: Always visible, badge shows when totalCartItems > 0 */}
+            <button
+              onClick={onOpenCart}
+              className="relative p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-xs sm:shadow-sm transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center group"
+              aria-label="Keranjang Belanja"
+              title={
+                totalCartItems > 0
+                  ? `Keranjang Belanja (${totalCartItems} barang)`
+                  : "Keranjang Belanja"
+              }
+            >
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 group-hover:rotate-6 transition-transform" />
+              {totalCartItems > 0 && (
                 <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 min-w-[16px] sm:min-w-[20px] h-4 sm:h-5 px-1 bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[8px] sm:text-[10px] font-black rounded-full flex items-center justify-center shadow-xs sm:shadow-md shadow-rose-600/30 animate-pulse">
                   {totalCartItems}
                 </span>
-              </button>
-            )}
+              )}
+            </button>
 
             <Link
               href="/#katalog"

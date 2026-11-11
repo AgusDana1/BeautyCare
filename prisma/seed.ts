@@ -148,7 +148,7 @@ async function main() {
         stock: 77,
         hasVariants: true,
         categoryId: categoriesMap["body-care"],
-        image: "https://images.unsplash.com/photo-1608248597359-2e650a259c63?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1643716991736-b83d4bf474b4?w=800&auto=format&fit=crop&q=80",
         variants: {
           create: [
             { size: "100ml", sizeValue: 100, price: 65000, stock: 40 },

@@ -75,7 +75,7 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 4,
     image:
-      "https://images.unsplash.com/photo-1608248597359-2e650a259c63?w=1600&auto=format&fit=crop&q=85",
+      "https://images.unsplash.com/photo-1643716991736-b83d4bf474b4?w=1600&auto=format&fit=crop&q=85",
     badge: "Perawatan Tubuh & Rambut Mewah",
     title: "Kelembutan Velvet Lotion & Nutrisi Argan Alami",
     description:

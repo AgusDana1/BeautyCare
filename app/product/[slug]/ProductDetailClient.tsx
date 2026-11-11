@@ -158,7 +158,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
         "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop&q=80"
       );
       list.push(
-        "https://images.unsplash.com/photo-1608248597359-2e650a259c63?w=800&auto=format&fit=crop&q=80"
+        "https://images.unsplash.com/photo-1643716991736-b83d4bf474b4?w=800&auto=format&fit=crop&q=80"
       );
     }
     return list;
