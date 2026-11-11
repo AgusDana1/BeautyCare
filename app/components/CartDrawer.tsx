@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingCart,
   X,
@@ -85,6 +85,28 @@ export default function CartDrawer({
     }
   };
 
+  // Close cart drawer on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Lock body scroll when cart is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   // Calculate discount (1 pt = Rp 100, max 50% total)
@@ -102,8 +124,16 @@ export default function CartDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex justify-end">
-      <div className="bg-white w-full sm:max-w-md h-full shadow-2xl flex flex-col justify-between animate-fade-in-up">
+    <div
+      className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex justify-end animate-fade-in cursor-pointer"
+      onClick={onClose}
+      aria-modal="true"
+      role="dialog"
+    >
+      <div
+        className="bg-white w-full sm:max-w-md h-full shadow-2xl flex flex-col justify-between animate-fade-in-up cursor-default relative z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="p-3 sm:p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
           <div className="flex items-center gap-1.5 sm:gap-2">

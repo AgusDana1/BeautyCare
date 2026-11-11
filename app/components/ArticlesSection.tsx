@@ -20,8 +20,8 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
   });
 
   return (
-    <section id="edukasi" className="py-12 sm:py-20 bg-white border-t border-stone-100">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-8 sm:space-y-12">
+    <section id="edukasi" className="py-8 sm:py-20 bg-white border-t border-stone-100">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-12">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">

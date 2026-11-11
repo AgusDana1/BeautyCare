@@ -73,8 +73,8 @@ export default function LoyaltySection() {
   const simulatedDiscount = simulatedPoints * 100;
 
   return (
-    <section id="loyalty" className="py-12 sm:py-20 bg-gradient-to-b from-[#faf7f5] via-rose-50/40 to-[#faf7f5]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
+    <section id="loyalty" className="py-8 sm:py-20 bg-gradient-to-b from-[#faf7f5] via-rose-50/40 to-[#faf7f5]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-14">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/80 text-rose-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-rose-200">

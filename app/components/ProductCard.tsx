@@ -72,17 +72,17 @@ export default function ProductCard({
       </Link>
 
       {/* Product Details */}
-      <div className="p-2.5 sm:p-5 flex flex-col flex-1 justify-between space-y-2 sm:space-y-4">
+      <div className="p-2 sm:p-4.5 flex flex-col flex-1 justify-between space-y-1.5 sm:space-y-4">
         <div className="space-y-1 sm:space-y-2">
           {/* Review Star Snippet */}
           <div className="flex items-center gap-1 text-[9px] sm:text-xs text-amber-600 font-bold">
-            <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+            <Star className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 shrink-0" />
             <span>{avgRating}</span>
             <span className="text-stone-400 font-normal">({reviewCount})</span>
             {product.sellerBadge && (
               <>
-                <span className="text-stone-300">•</span>
-                <span className="text-rose-600 font-semibold truncate text-[9px]">
+                <span className="hidden sm:inline text-stone-300">•</span>
+                <span className="hidden sm:inline text-rose-600 font-semibold text-[9px]">
                   Official
                 </span>
               </>
@@ -95,39 +95,47 @@ export default function ProductCard({
             </h3>
           </Link>
 
-          <p className="text-[10px] sm:text-xs text-stone-500 line-clamp-2 leading-tight sm:leading-relaxed">
+          {/* Description: Hidden on smartphone to provide a clean, uncluttered, professional UX */}
+          <p className="hidden sm:block text-xs text-stone-500 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
 
           {/* Available Sizes preview badge */}
-          <div className="pt-0.5 sm:pt-1">
+          <div className="pt-0.5">
             {hasVariants ? (
-              <div className="flex flex-wrap items-center gap-0.5 sm:gap-1">
-                <span className="text-[9px] sm:text-[10px] text-stone-400 font-medium">Ukuran:</span>
-                {product.variants.map((v) => (
-                  <span
-                    key={v.id}
-                    className="text-[8px] sm:text-[10px] font-bold px-1 sm:px-2 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/50"
-                  >
-                    {v.size}
-                  </span>
-                ))}
-              </div>
+              <>
+                {/* Smartphone: Minimalist single line variant counter */}
+                <div className="sm:hidden text-[9px] text-stone-400 font-medium">
+                  {product.variants.length} Varian Ukuran (ml)
+                </div>
+                {/* Desktop/Tablet: Individual size pills */}
+                <div className="hidden sm:flex flex-wrap items-center gap-1">
+                  <span className="text-[10px] text-stone-400 font-medium">Ukuran:</span>
+                  {product.variants.map((v) => (
+                    <span
+                      key={v.id}
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200/50"
+                    >
+                      {v.size}
+                    </span>
+                  ))}
+                </div>
+              </>
             ) : (
-              <span className="text-[9px] sm:text-[10px] text-stone-400 italic">
-                Standar
+              <span className="text-[8px] sm:text-[10px] text-stone-400 italic">
+                Ukuran Standar
               </span>
             )}
           </div>
         </div>
 
         {/* Price & Actions */}
-        <div className="pt-2 sm:pt-3 border-t border-stone-100 flex items-center justify-between gap-1 sm:gap-2">
+        <div className="pt-1.5 sm:pt-3 border-t border-stone-100 flex items-center justify-between gap-1 sm:gap-2">
           <Link href={`/product/${product.slug}`} className="min-w-0">
-            <span className="text-[8px] sm:text-[10px] text-stone-400 block font-medium">
+            <span className="text-[7px] sm:text-[10px] text-stone-400 block font-medium uppercase tracking-wider">
               {hasVariants ? "Mulai" : "Harga"}
             </span>
-            <span className="font-extrabold text-stone-900 text-xs sm:text-base font-mono truncate block hover:text-rose-600 transition">
+            <span className="font-extrabold text-stone-900 text-[11px] sm:text-base font-mono truncate block hover:text-rose-600 transition">
               Rp {minPrice.toLocaleString("id-ID")}
             </span>
           </Link>
@@ -148,10 +156,10 @@ export default function ProductCard({
             <button
               onClick={() => onOpenOrderModal(product)}
               disabled={product.stock === 0}
-              className="px-2 sm:px-3.5 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-xs sm:shadow-md shadow-rose-600/25 hover:scale-105 transition-all duration-200 flex items-center gap-0.5 sm:gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 py-1.5 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-xs sm:shadow-md shadow-rose-600/25 hover:scale-105 transition-all duration-200 flex items-center gap-0.5 sm:gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>Pesan</span>
-              <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <ChevronRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         </div>
