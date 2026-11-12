@@ -20,6 +20,12 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  Megaphone,
+  Calendar,
+  Percent,
+  Bell,
+  Send,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Variant {
@@ -92,11 +98,29 @@ interface AdminSession {
   role: string;
 }
 
+interface EventData {
+  id: number;
+  title: string;
+  code: string;
+  description: string | null;
+  bannerText: string | null;
+  discountPercent: number;
+  eventMonth: number | null;
+  eventDay: number | null;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { notifications: number };
+}
+
 interface Props {
   admin: AdminSession;
   initialCategories: Category[];
   initialProducts: Product[];
   initialOrders: Order[];
+  initialEvents?: EventData[];
 }
 
 export default function AdminDashboardClient({
@@ -104,13 +128,35 @@ export default function AdminDashboardClient({
   initialCategories,
   initialProducts,
   initialOrders,
+  initialEvents = [],
 }: Props) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "categories" | "orders">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "products" | "categories" | "orders" | "events"
+  >("overview");
 
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [events, setEvents] = useState<EventData[]>(initialEvents);
+
+  // Event states
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<EventData | null>(null);
+  const [eventToast, setEventToast] = useState<string | null>(null);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    code: "",
+    description: "",
+    bannerText: "",
+    discountPercent: 50,
+    eventMonth: 12,
+    eventDay: 1,
+    startDate: "2026-12-01",
+    endDate: "2026-12-04",
+    isActive: true,
+    broadcastNotification: true,
+  });
 
   // Search & Filter States
   const [productSearch, setProductSearch] = useState("");
@@ -314,6 +360,200 @@ export default function AdminDashboardClient({
     }
   };
 
+  // Event Management Handlers
+  const refreshEvents = async () => {
+    try {
+      const res = await fetch("/api/events?all=true");
+      const data = await res.json();
+      if (data.events) {
+        setEvents(data.events);
+      }
+    } catch (e) {
+      console.error("Gagal refresh event:", e);
+    }
+  };
+
+  const applyPreset = (preset: "12.1" | "11.2" | "10.3") => {
+    const today = new Date();
+    const curYear = today.getFullYear();
+    if (preset === "12.1") {
+      setEventForm({
+        title: "Festival Belanja Harbolnas 12.1",
+        code: "CANTIK121",
+        description: "Diskon Akbar 50% untuk seluruh produk perawatan kecantikan terbaik menyambut festival belanja 12.1!",
+        bannerText: "🎉 Event Spesial 12.1 Harbolnas! Diskon Spektakuler 50% Seluruh Produk + Double Poin!",
+        discountPercent: 50,
+        eventMonth: 12,
+        eventDay: 1,
+        startDate: `${curYear}-12-01`,
+        endDate: `${curYear}-12-04`,
+        isActive: true,
+        broadcastNotification: true,
+      });
+    } else if (preset === "11.2") {
+      setEventForm({
+        title: "Glow Up Day 11.2",
+        code: "GLOW112",
+        description: "Promo istimewa tanggal kembar 11.2! Diskon 35% untuk semua serum, essence, dan pelembap wajah.",
+        bannerText: "✨ Event 11.2 Glow Up Day! Potongan 35% Spesial Kulit Sehat & Glowing Natural!",
+        discountPercent: 35,
+        eventMonth: 11,
+        eventDay: 2,
+        startDate: `${curYear}-11-02`,
+        endDate: `${curYear}-11-05`,
+        isActive: true,
+        broadcastNotification: true,
+      });
+    } else if (preset === "10.3") {
+      setEventForm({
+        title: "Cantik Alami 10.3",
+        code: "ALAMI103",
+        description: "Flash sale 10.3! Diskon 25% produk perawatan tubuh dan skincare bahan alami bersertifikasi BPOM.",
+        bannerText: "🌿 Event 10.3 Cantik Alami! Diskon 25% Produk Organik & Skincare Pilihan!",
+        discountPercent: 25,
+        eventMonth: 10,
+        eventDay: 3,
+        startDate: `${curYear}-10-03`,
+        endDate: `${curYear}-10-06`,
+        isActive: true,
+        broadcastNotification: true,
+      });
+    }
+    setEditingEvent(null);
+    setIsEventModalOpen(true);
+  };
+
+  const handleOpenNewEvent = () => {
+    const today = new Date().toISOString().split("T")[0];
+    const end = new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0];
+    setEditingEvent(null);
+    setEventForm({
+      title: "",
+      code: "",
+      description: "",
+      bannerText: "",
+      discountPercent: 30,
+      eventMonth: new Date().getMonth() + 1,
+      eventDay: new Date().getDate(),
+      startDate: today,
+      endDate: end,
+      isActive: true,
+      broadcastNotification: true,
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleEditEvent = (evt: EventData) => {
+    setEditingEvent(evt);
+    setEventForm({
+      title: evt.title,
+      code: evt.code,
+      description: evt.description || "",
+      bannerText: evt.bannerText || "",
+      discountPercent: evt.discountPercent,
+      eventMonth: evt.eventMonth || 1,
+      eventDay: evt.eventDay || 1,
+      startDate: evt.startDate.split("T")[0],
+      endDate: evt.endDate.split("T")[0],
+      isActive: evt.isActive,
+      broadcastNotification: false,
+    });
+    setIsEventModalOpen(true);
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingAction(true);
+    try {
+      if (editingEvent) {
+        const res = await fetch(`/api/events/${editingEvent.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventForm),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal memperbarui event");
+      } else {
+        const res = await fetch("/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(eventForm),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal membuat event");
+      }
+      setIsEventModalOpen(false);
+      setEditingEvent(null);
+      await refreshEvents();
+      setEventToast("Event berhasil disimpan dan disiarkan ke website!");
+      setTimeout(() => setEventToast(null), 4000);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Terjadi kesalahan");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleToggleEventStatus = async (eventId: number, currentActive: boolean) => {
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !currentActive }),
+      });
+      if (res.ok) {
+        setEvents((prev) =>
+          prev.map((e) => (e.id === eventId ? { ...e, isActive: !currentActive } : e))
+        );
+        setEventToast(
+          !currentActive
+            ? "Event diaktifkan! Banner pengumuman kini tayang di website."
+            : "Event dinonaktifkan."
+        );
+        setTimeout(() => setEventToast(null), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleBroadcastEvent = async (event: EventData) => {
+    try {
+      const res = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          title: `🔥 Promo Spesial: ${event.title}!`,
+          message: event.description || event.bannerText,
+          type: "EVENT",
+          link: "/#koleksi",
+        }),
+      });
+      if (res.ok) {
+        setEventToast(`Notifikasi untuk event "${event.title}" berhasil disiarkan ke semua customer!`);
+        setTimeout(() => setEventToast(null), 4000);
+        await refreshEvents();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: number) => {
+    if (!confirm("Yakin ingin menghapus promo event ini?")) return;
+    try {
+      const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
+      if (res.ok) {
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
+        setEventToast("Event berhasil dihapus.");
+        setTimeout(() => setEventToast(null), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Filtered Products
   const filteredProducts = products.filter((p) => {
     const matchSearch =
@@ -392,6 +632,12 @@ export default function AdminDashboardClient({
             { id: "products", label: "Kelola Produk & Varian (ml)", icon: Package },
             { id: "categories", label: "Kelola Kategori", icon: Layers },
             { id: "orders", label: "Pesanan & Invoice", icon: ShoppingBag, badge: pendingOrdersCount },
+            {
+              id: "events",
+              label: "Event Diskon & Notifikasi (12.1, 11.2, 10.3)",
+              icon: Megaphone,
+              badge: events.filter((e) => e.isActive).length,
+            },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1146,6 +1392,296 @@ export default function AdminDashboardClient({
             </div>
           </div>
         )}
+
+        {/* TAB 5: EVENT DISKON & NOTIFIKASI (12.1, 11.2, 10.3) */}
+        {activeTab === "events" && (
+          <div className="space-y-6 animate-fade-in-up">
+            {/* Toast Notification */}
+            {eventToast && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{eventToast}</span>
+                </div>
+                <button
+                  onClick={() => setEventToast(null)}
+                  className="text-emerald-500 hover:text-emerald-700 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Header & Quick Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-rose-50 text-rose-600">
+                    <Megaphone className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-stone-900">
+                      Konfigurasi Event Diskon &amp; Notifikasi (12.1, 11.2, 10.3)
+                    </h2>
+                    <p className="text-xs text-stone-500">
+                      Kelola promo tanggal kembar / bulanan, diskon besar-besaran, serta siarkan notifikasi ke akun customer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleOpenNewEvent}
+                  className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Buat Event Baru</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Template Presets: 12.1, 11.2, 10.3 */}
+            <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-amber-50/40 p-5 rounded-2xl border border-rose-100">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-rose-600" />
+                <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                  Template Cepat Event Tanggal &amp; Bulan Spesial:
+                </h3>
+              </div>
+              <p className="text-xs text-stone-600 mb-4">
+                Klik salah satu template di bawah untuk mengisi konfigurasi otomatis event tanggal dan bulan tertentu:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* 12.1 Harbolnas */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset("12.1")}
+                  className="p-4 rounded-xl bg-white/90 hover:bg-white border border-rose-200/80 hover:border-rose-400 text-left transition shadow-2xs hover:shadow-md group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-100 text-rose-700">
+                      BULAN 12 • TGL 1
+                    </span>
+                    <span className="text-xs font-black text-rose-600">Diskon 50%</span>
+                  </div>
+                  <h4 className="text-xs font-bold text-stone-900 group-hover:text-rose-600 transition">
+                    Festival Belanja 12.1
+                  </h4>
+                  <p className="text-[11px] text-stone-500 line-clamp-2 mt-0.5">
+                    Harbolnas diskon 50% akhir tahun + notifikasi massal ke semua customer.
+                  </p>
+                  <span className="mt-2 text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                    Gunakan Template Ini &rarr;
+                  </span>
+                </button>
+
+                {/* 11.2 Glow Up */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset("11.2")}
+                  className="p-4 rounded-xl bg-white/90 hover:bg-white border border-rose-200/80 hover:border-rose-400 text-left transition shadow-2xs hover:shadow-md group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-pink-100 text-pink-700">
+                      BULAN 11 • TGL 2
+                    </span>
+                    <span className="text-xs font-black text-pink-600">Diskon 35%</span>
+                  </div>
+                  <h4 className="text-xs font-bold text-stone-900 group-hover:text-pink-600 transition">
+                    Glow Up Day 11.2
+                  </h4>
+                  <p className="text-[11px] text-stone-500 line-clamp-2 mt-0.5">
+                    Promo spesial bulan 11 tgl 2 untuk produk serum, essence, dan pelembap.
+                  </p>
+                  <span className="mt-2 text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                    Gunakan Template Ini &rarr;
+                  </span>
+                </button>
+
+                {/* 10.3 Cantik Alami */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset("10.3")}
+                  className="p-4 rounded-xl bg-white/90 hover:bg-white border border-rose-200/80 hover:border-rose-400 text-left transition shadow-2xs hover:shadow-md group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-700">
+                      BULAN 10 • TGL 3
+                    </span>
+                    <span className="text-xs font-black text-amber-600">Diskon 25%</span>
+                  </div>
+                  <h4 className="text-xs font-bold text-stone-900 group-hover:text-amber-600 transition">
+                    Cantik Alami 10.3
+                  </h4>
+                  <p className="text-[11px] text-stone-500 line-clamp-2 mt-0.5">
+                    Diskon 25% produk perawatan tubuh organik dan skincare alami BPOM.
+                  </p>
+                  <span className="mt-2 text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                    Gunakan Template Ini &rarr;
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Storefront Banner Preview */}
+            {events.some((e) => e.isActive) && (
+              <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="text-xs font-bold text-stone-900">
+                      Pratinjau Banner Pengumuman Website Saat Ini:
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Sedang Tayang di Bar Atas Website
+                  </span>
+                </div>
+                <div className="bg-gradient-to-r from-stone-900 via-rose-950 to-stone-900 text-white py-2.5 px-4 rounded-xl text-center text-xs font-semibold shadow-inner flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span className="truncate">
+                    {events.find((e) => e.isActive)?.bannerText}
+                  </span>
+                  <span className="bg-rose-500/30 border border-rose-400/40 text-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                    KODE: {events.find((e) => e.isActive)?.code}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Events List Table / Cards */}
+            <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs overflow-hidden">
+              <div className="p-5 border-b border-stone-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-stone-900">
+                    Daftar Semua Promo Event ({events.length})
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    Gunakan tombol switch untuk mengaktifkan/menonaktifkan banner, atau tombol kirim untuk membroadcast notifikasi.
+                  </p>
+                </div>
+              </div>
+
+              {events.length === 0 ? (
+                <div className="text-center py-12 text-stone-400 text-xs">
+                  <Megaphone className="w-8 h-8 mx-auto mb-2 text-stone-300" />
+                  Belum ada event promo yang dibuat. Klik tombol &quot;Buat Event Baru&quot; atau pilih salah satu template di atas.
+                </div>
+              ) : (
+                <div className="divide-y divide-stone-100">
+                  {events.map((evt) => (
+                    <div
+                      key={evt.id}
+                      className="p-5 hover:bg-stone-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 max-w-2xl">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                              evt.isActive
+                                ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                : "bg-stone-100 text-stone-500"
+                            }`}
+                          >
+                            {evt.isActive ? "● AKTIF TAYANG" : "NONAKTIF"}
+                          </span>
+
+                          {Boolean(evt.eventMonth && evt.eventDay) && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-100">
+                              Bulan {evt.eventMonth} • Tgl {evt.eventDay}
+                            </span>
+                          )}
+
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-900 text-white font-mono">
+                            KODE: {evt.code}
+                          </span>
+
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800">
+                            Diskon {evt.discountPercent}%
+                          </span>
+                        </div>
+
+                        <h4 className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                          <span>{evt.title}</span>
+                        </h4>
+
+                        <p className="text-xs text-stone-600">
+                          {evt.description || evt.bannerText}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-4 text-[11px] text-stone-400 pt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-stone-400" />
+                            Periode: {new Date(evt.startDate).toLocaleDateString("id-ID")} - {new Date(evt.endDate).toLocaleDateString("id-ID")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Bell className="w-3 h-3 text-stone-400" />
+                            {evt._count?.notifications || 0} Notifikasi Terkirim
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Controls */}
+                      <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-stone-100">
+                        {/* Toggle Active Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleEventStatus(evt.id, evt.isActive)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                            evt.isActive
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                              : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                          }`}
+                          title={evt.isActive ? "Klik untuk nonaktifkan" : "Klik untuk aktifkan"}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              evt.isActive ? "bg-emerald-500" : "bg-stone-400"
+                            }`}
+                          />
+                          <span>{evt.isActive ? "Aktif" : "Nonaktif"}</span>
+                        </button>
+
+                        {/* Broadcast Notification Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleBroadcastEvent(evt)}
+                          className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                          title="Siarkan notifikasi promo ini ke semua akun customer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Kirim Notifikasi</span>
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleEditEvent(evt)}
+                          className="p-1.5 rounded-xl text-stone-600 hover:bg-stone-100 border border-stone-200 transition cursor-pointer"
+                          title="Edit detail event"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEvent(evt.id)}
+                          className="p-1.5 rounded-xl text-red-600 hover:bg-red-50 border border-red-200 transition cursor-pointer"
+                          title="Hapus event"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* MODAL: PRODUCT (ADD / EDIT) */}
@@ -1414,6 +1950,240 @@ export default function AdminDashboardClient({
                   className="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold transition cursor-pointer"
                 >
                   {loadingAction ? "Menyimpan..." : "Simpan Kategori"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EVENT (ADD / EDIT) */}
+      {isEventModalOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 max-h-[90vh] overflow-y-auto animate-fade-in-up">
+            <div className="flex justify-between items-center pb-4 border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-rose-600" />
+                <h3 className="text-base font-bold text-stone-900">
+                  {editingEvent ? "Edit Event Promo Diskon" : "Tambah Event Promo Baru"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsEventModalOpen(false)}
+                className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEvent} className="space-y-4 mt-4 text-xs">
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  Judul Event <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={eventForm.title}
+                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  placeholder="Contoh: Festival Belanja Harbolnas 12.1"
+                  className="w-full p-2.5 rounded-xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Kode Promo / Voucher <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={eventForm.code}
+                    onChange={(e) =>
+                      setEventForm({ ...eventForm, code: e.target.value.toUpperCase() })
+                    }
+                    placeholder="Contoh: CANTIK121"
+                    className="w-full p-2.5 rounded-xl border border-stone-200 uppercase font-mono font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Besaran Diskon (%) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      required
+                      value={eventForm.discountPercent}
+                      onChange={(e) =>
+                        setEventForm({
+                          ...eventForm,
+                          discountPercent: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
+                      className="w-full p-2.5 rounded-xl border border-stone-200 pl-8 font-bold"
+                    />
+                    <Percent className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-3" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tanggal & Bulan Khusus (12.1, 11.2, 10.3) */}
+              <div className="p-3.5 bg-rose-50/50 rounded-xl border border-rose-100">
+                <span className="block font-bold text-stone-800 mb-1.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-rose-600" />
+                  Konfigurasi Tanggal &amp; Bulan Khusus (e.g. 12.1, 11.2, 10.3)
+                </span>
+                <p className="text-[11px] text-stone-500 mb-3">
+                  Tentukan tanggal dan bulan perayaan untuk menyinkronkan event musiman.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-600 mb-1 text-[11px]">
+                      Bulan Event (1 - 12)
+                    </label>
+                    <select
+                      value={eventForm.eventMonth}
+                      onChange={(e) =>
+                        setEventForm({
+                          ...eventForm,
+                          eventMonth: parseInt(e.target.value, 10),
+                        })
+                      }
+                      className="w-full p-2 rounded-lg border border-stone-200 bg-white font-medium"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                        <option key={m} value={m}>
+                          Bulan {m} ({new Date(2026, m - 1).toLocaleString("id-ID", { month: "long" })})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-stone-600 mb-1 text-[11px]">
+                      Tanggal Event (1 - 31)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={eventForm.eventDay}
+                      onChange={(e) =>
+                        setEventForm({
+                          ...eventForm,
+                          eventDay: parseInt(e.target.value, 10) || 1,
+                        })
+                      }
+                      className="w-full p-2 rounded-lg border border-stone-200 bg-white font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  Teks Banner Pengumuman Website <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={eventForm.bannerText}
+                  onChange={(e) => setEventForm({ ...eventForm, bannerText: e.target.value })}
+                  placeholder="🎉 Event Spesial 12.1 Harbolnas! Diskon Spektakuler 50% Seluruh Produk!"
+                  className="w-full p-2.5 rounded-xl border border-stone-200"
+                />
+                <span className="text-[10px] text-stone-400 mt-0.5 block">
+                  Teks ini langsung muncul di bar atas (top notification bar) di website toko.
+                </span>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-stone-700 mb-1">
+                  Deskripsi / Pesan Notifikasi Customer
+                </label>
+                <textarea
+                  rows={2}
+                  value={eventForm.description}
+                  onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                  placeholder="Pesan yang dikirimkan ke kotak masuk notifikasi akun customer..."
+                  className="w-full p-2.5 rounded-xl border border-stone-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Tanggal Mulai Promo
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={eventForm.startDate}
+                    onChange={(e) => setEventForm({ ...eventForm, startDate: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-stone-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Tanggal Selesai Promo
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={eventForm.endDate}
+                    onChange={(e) => setEventForm({ ...eventForm, endDate: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-stone-200"
+                  />
+                </div>
+              </div>
+
+              {/* Toggles */}
+              <div className="space-y-2 pt-2 border-t border-stone-100">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-stone-800">
+                  <input
+                    type="checkbox"
+                    checked={eventForm.isActive}
+                    onChange={(e) => setEventForm({ ...eventForm, isActive: e.target.checked })}
+                    className="w-4 h-4 text-rose-600 rounded"
+                  />
+                  <span>Aktifkan event ini sekarang (tayang di banner website)</span>
+                </label>
+
+                {!editingEvent && (
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-stone-800">
+                    <input
+                      type="checkbox"
+                      checked={eventForm.broadcastNotification}
+                      onChange={(e) =>
+                        setEventForm({ ...eventForm, broadcastNotification: e.target.checked })
+                      }
+                      className="w-4 h-4 text-purple-600 rounded"
+                    />
+                    <span>Kirim siaran notifikasi langsung ke semua akun customer</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-stone-200">
+                <button
+                  type="button"
+                  onClick={() => setIsEventModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-stone-200 text-stone-600 font-semibold cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loadingAction}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition cursor-pointer"
+                >
+                  {loadingAction ? "Menyimpan..." : "Simpan & Terapkan Event"}
                 </button>
               </div>
             </form>

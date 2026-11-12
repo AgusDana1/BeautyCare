@@ -14,7 +14,7 @@ async function AdminContent() {
   }
 
   // Fetch initial data
-  const [categories, products, orders] = await Promise.all([
+  const [categories, products, orders, events] = await Promise.all([
     prisma.category.findMany({
       include: {
         _count: {
@@ -42,6 +42,14 @@ async function AdminContent() {
         },
       },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.promoEvent.findMany({
+      orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
+      include: {
+        _count: {
+          select: { notifications: true },
+        },
+      },
     }),
   ]);
 
@@ -109,12 +117,30 @@ async function AdminContent() {
     })),
   }));
 
+  const sanitizedEvents = events.map((e) => ({
+    id: e.id,
+    title: e.title,
+    code: e.code,
+    description: e.description,
+    bannerText: e.bannerText || "",
+    discountPercent: e.discountPercent,
+    eventMonth: e.eventMonth,
+    eventDay: e.eventDay,
+    startDate: e.startDate.toISOString(),
+    endDate: e.endDate.toISOString(),
+    isActive: e.isActive,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+    _count: e._count,
+  }));
+
   return (
     <AdminDashboardClient
       admin={admin}
       initialCategories={sanitizedCategories}
       initialProducts={sanitizedProducts}
       initialOrders={sanitizedOrders}
+      initialEvents={sanitizedEvents}
     />
   );
 }

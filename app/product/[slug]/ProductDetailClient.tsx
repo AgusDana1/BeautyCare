@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useMemo, useSyncExternalStore, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,9 @@ import {
   MapPin,
   Clock,
   CheckCircle,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
   Play,
   X,
   Heart,
@@ -24,6 +27,7 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Award,
+  Camera,
 } from "lucide-react";
 import {
   Product,
@@ -44,6 +48,7 @@ import Footer from "@/app/components/Footer";
 import ProductCard from "@/app/components/ProductCard";
 import CartDrawer from "@/app/components/CartDrawer";
 import OrderModal from "@/app/components/OrderModal";
+import CustomerAuthModal from "@/app/components/CustomerAuthModal";
 
 interface Props {
   product: Product;
@@ -79,6 +84,152 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
   const [quantity, setQuantity] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<"desc" | "ingredients" | "safety">("desc");
 
+  // Customer session state
+  const [customer, setCustomer] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    phone?: string | null;
+    points: number;
+    purchasedProductIds: number[];
+  } | null>(null);
+  const [isCustomerAuthOpen, setIsCustomerAuthOpen] = useState(false);
+  const [notPurchasedAlertOpen, setNotPurchasedAlertOpen] = useState(false);
+
+  // Reviews state
+  const [reviewsList, setReviewsList] = useState<Review[]>(product.reviews || []);
+  const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewVariant, setReviewVariant] = useState(
+    product.variants && product.variants.length > 0 ? product.variants[0].size : "Ukuran Standar"
+  );
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewMediaType, setReviewMediaType] = useState<"image" | "video">("image");
+  const [reviewMediaUrl, setReviewMediaUrl] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewErrorMessage, setReviewErrorMessage] = useState("");
+  const [reviewSuccessMessage, setReviewSuccessMessage] = useState("");
+
+  // Checkout form state
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("QRIS");
+  const [notes, setNotes] = useState("");
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState("");
+
+  const fetchCustomerSession = async () => {
+    try {
+      const res = await fetch("/api/customer/me");
+      const data = await res.json();
+      if (res.ok && data.customer) {
+        setCustomer(data.customer);
+        if (data.customer.name) setCustomerName(data.customer.name);
+        if (data.customer.email) setCustomerEmail(data.customer.email);
+        if (data.customer.phone) setCustomerPhone(data.customer.phone);
+      } else {
+        setCustomer(null);
+      }
+    } catch {
+      setCustomer(null);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const init = async () => {
+      try {
+        const res = await fetch("/api/customer/me");
+        if (!isMounted) return;
+        const data = await res.json();
+        if (res.ok && data.customer) {
+          setCustomer(data.customer);
+          if (data.customer.name) setCustomerName(data.customer.name);
+          if (data.customer.email) setCustomerEmail(data.customer.email);
+          if (data.customer.phone) setCustomerPhone(data.customer.phone);
+        } else {
+          setCustomer(null);
+        }
+      } catch {
+        if (isMounted) setCustomer(null);
+      }
+    };
+
+    void init();
+
+    const handleUpdate = () => {
+      fetchCustomerSession();
+    };
+    window.addEventListener("beautycare-customer-updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("beautycare-customer-updated", handleUpdate);
+    };
+  }, []);
+
+  const handleOpenWriteReview = () => {
+    if (!customer) {
+      setIsCustomerAuthOpen(true);
+      return;
+    }
+
+    const hasPurchased = customer.purchasedProductIds?.includes(product.id);
+    if (!hasPurchased) {
+      setNotPurchasedAlertOpen(true);
+      return;
+    }
+
+    setReviewRating(5);
+    setReviewComment("");
+    setReviewMediaUrl("");
+    setReviewErrorMessage("");
+    setReviewSuccessMessage("");
+    setIsWriteReviewOpen(true);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReviewSubmitting(true);
+    setReviewErrorMessage("");
+    setReviewSuccessMessage("");
+
+    try {
+      const res = await fetch(`/api/products/${product.id}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: reviewRating,
+          comment: reviewComment,
+          selectedVariant: reviewVariant,
+          mediaUrl: reviewMediaUrl,
+          mediaType: reviewMediaType,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal mengirim ulasan.");
+      }
+
+      setReviewSuccessMessage("Ulasan & penilaian produk Anda berhasil dikirim!");
+      if (data.review) {
+        setReviewsList((prev) => [data.review, ...prev]);
+      }
+      setTimeout(() => {
+        setIsWriteReviewOpen(false);
+        setReviewSuccessMessage("");
+      }, 1500);
+    } catch (err: unknown) {
+      setReviewErrorMessage(
+        err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim ulasan."
+      );
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   // Review filters & media modal
   const [reviewFilter, setReviewFilter] = useState<"ALL" | "MEDIA" | "5_STAR" | "4_STAR">("ALL");
   const [activeMediaModal, setActiveMediaModal] = useState<{
@@ -95,16 +246,6 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
   const [isLiked, setIsLiked] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Checkout form state
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("QRIS");
-  const [notes, setNotes] = useState("");
-  const [orderSubmitting, setOrderSubmitting] = useState(false);
-  const [orderError, setOrderError] = useState("");
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -117,7 +258,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
   const potentialDiscount = potentialPoints * 100;
 
   // Review stats
-  const reviews: Review[] = useMemo(() => product.reviews || [], [product.reviews]);
+  const reviews: Review[] = reviewsList;
   const reviewCount = reviews.length;
   const avgRating =
     reviewCount > 0
@@ -773,49 +914,72 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
         {/* SECTION: BUYER REVIEWS & DOCUMENTATION (Bintang & Foto / Video Pembeli) */}
         <section id="ulasan" className="mt-12 sm:mt-16 pt-8 border-t border-stone-200">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
-              <span className="text-[10px] sm:text-xs font-bold text-rose-600 uppercase tracking-wider block">
-                Ulasan &amp; Bukti Nyata Pembeli
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] sm:text-xs font-bold text-rose-600 uppercase tracking-wider block">
+                  Ulasan &amp; Bukti Nyata Pembeli
+                </span>
+                {customer && customer.purchasedProductIds?.includes(product.id) && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    Verified Buyer
+                  </span>
+                )}
+              </div>
               <h2 className="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">
                 Dokumentasi Pembeli &amp; Penilaian Bintang
               </h2>
+              <p className="text-xs text-stone-500 mt-1">
+                Penilaian produk hanya dapat diberikan oleh customer yang telah membeli produk ini untuk menjaga keaslian ulasan.
+              </p>
             </div>
 
-            {/* Filter Buttons */}
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Tombol Tulis Penilaian */}
               <button
-                onClick={() => setReviewFilter("ALL")}
-                className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition cursor-pointer ${
-                  reviewFilter === "ALL"
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
-                }`}
+                type="button"
+                onClick={handleOpenWriteReview}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs hover:shadow-md transition flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                Semua ({reviews.length})
+                <Star className="w-3.5 h-3.5 fill-white text-white" />
+                <span>Tulis Penilaian Produk</span>
               </button>
-              <button
-                onClick={() => setReviewFilter("MEDIA")}
-                className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
-                  reviewFilter === "MEDIA"
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
-                }`}
-              >
-                <VideoIcon className="w-3 h-3" />
-                <span>Foto &amp; Video ({mediaReviews.length})</span>
-              </button>
-              <button
-                onClick={() => setReviewFilter("5_STAR")}
-                className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition cursor-pointer ${
-                  reviewFilter === "5_STAR"
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
-                }`}
-              >
-                ⭐ 5 Bintang
-              </button>
+
+              {/* Filter Buttons */}
+              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-stone-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setReviewFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer ${
+                    reviewFilter === "ALL"
+                      ? "bg-white text-stone-900 shadow-2xs"
+                      : "text-stone-600 hover:text-stone-900"
+                  }`}
+                >
+                  Semua ({reviews.length})
+                </button>
+                <button
+                  onClick={() => setReviewFilter("MEDIA")}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                    reviewFilter === "MEDIA"
+                      ? "bg-white text-stone-900 shadow-2xs"
+                      : "text-stone-600 hover:text-stone-900"
+                  }`}
+                >
+                  <VideoIcon className="w-3 h-3" />
+                  <span>Media ({mediaReviews.length})</span>
+                </button>
+                <button
+                  onClick={() => setReviewFilter("5_STAR")}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer ${
+                    reviewFilter === "5_STAR"
+                      ? "bg-white text-stone-900 shadow-2xs"
+                      : "text-stone-600 hover:text-stone-900"
+                  }`}
+                >
+                  ⭐ 5
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1148,6 +1312,316 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
             setOrderModalProduct(null);
           }}
         />
+      )}
+
+      {/* MODAL: CUSTOMER AUTH (LOGIN / REGISTER) */}
+      <CustomerAuthModal
+        isOpen={isCustomerAuthOpen}
+        onClose={() => setIsCustomerAuthOpen(false)}
+        onSuccess={() => {
+          fetchCustomerSession();
+        }}
+      />
+
+      {/* MODAL: NOT PURCHASED WARNING */}
+      {notPurchasedAlertOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 text-center border border-stone-200 animate-scale-up">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+
+            <h3 className="text-base sm:text-lg font-black text-stone-900 mb-2">
+              Khusus Pembeli Terverifikasi
+            </h3>
+
+            <p className="text-xs text-stone-600 leading-relaxed mb-4">
+              Akun Anda (<span className="font-semibold text-stone-900">{customer?.email}</span>) belum memiliki riwayat pesanan produk <span className="font-bold text-stone-900">{product.name}</span>.
+            </p>
+
+            <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-left text-[11px] text-amber-900 mb-6 space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-amber-800">
+                <ShieldCheck className="w-4 h-4 text-amber-600" />
+                Standar Keaslian Ulasan BeautyCare:
+              </p>
+              <p className="text-amber-700">
+                Untuk menjamin bahwa setiap penilaian dan dokumentasi foto/video 100% otentik, ulasan hanya dapat dikirim setelah pesanan Anda diproses.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setNotPurchasedAlertOpen(false);
+                  setOrderModalProduct(product);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+              >
+                Pesan Produk Ini Sekarang
+              </button>
+              <button
+                type="button"
+                onClick={() => setNotPurchasedAlertOpen(false)}
+                className="w-full sm:w-auto py-2.5 px-4 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-semibold transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TULIS PENILAIAN & ULASAN PRODUK */}
+      {isWriteReviewOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-5 sm:p-6 max-h-[92vh] overflow-y-auto border border-stone-200 animate-scale-up">
+            <div className="flex justify-between items-center pb-3.5 border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-rose-100 text-rose-600">
+                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
+                </span>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-stone-900">
+                    Beri Penilaian &amp; Ulasan Produk
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    Sebagai: <span className="font-semibold text-stone-800">{customer?.name}</span> (Verified Buyer)
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsWriteReviewOpen(false)}
+                className="text-stone-400 hover:text-stone-700 p-1.5 rounded-full hover:bg-stone-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {reviewErrorMessage && (
+              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{reviewErrorMessage}</span>
+              </div>
+            )}
+
+            {reviewSuccessMessage && (
+              <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{reviewSuccessMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReview} className="space-y-4 mt-4 text-xs">
+              {/* Product Info Preview */}
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 border border-stone-200/80">
+                <img
+                  src={product.image || "/placeholder.jpg"}
+                  alt={product.name}
+                  className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-stone-900 truncate">{product.name}</h4>
+                  <p className="text-[11px] text-rose-600 font-semibold">{product.category.name}</p>
+                </div>
+              </div>
+
+              {/* Star Rating Selector */}
+              <div>
+                <label className="block font-bold text-stone-800 mb-1.5">
+                  Berapa Rating Bintang Anda? <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-1.5 bg-stone-50 p-3 rounded-2xl border border-stone-200/80">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                    >
+                      <Star
+                        className={`w-7 h-7 sm:w-8 sm:h-8 ${
+                          star <= reviewRating
+                            ? "text-amber-400 fill-amber-400 drop-shadow-xs"
+                            : "text-stone-300"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-3 font-bold text-xs text-stone-700">
+                    {reviewRating === 5 && "⭐⭐⭐⭐⭐ Luar Biasa Memuaskan!"}
+                    {reviewRating === 4 && "⭐⭐⭐⭐ Sangat Bagus"}
+                    {reviewRating === 3 && "⭐⭐⭐ Cukup Baik"}
+                    {reviewRating === 2 && "⭐⭐ Kurang Memuaskan"}
+                    {reviewRating === 1 && "⭐ Kecewa"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Variant Selector (if has variants) */}
+              {product.variants && product.variants.length > 0 && (
+                <div>
+                  <label className="block font-bold text-stone-800 mb-1">
+                    Varian Ukuran yang Anda Beli:
+                  </label>
+                  <select
+                    value={reviewVariant}
+                    onChange={(e) => setReviewVariant(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-stone-200 bg-white font-medium text-xs"
+                  >
+                    {product.variants.map((v) => (
+                      <option key={v.id} value={v.size}>
+                        {v.size} ({formatRupiah(v.price)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Review Comment */}
+              <div>
+                <label className="block font-bold text-stone-800 mb-1">
+                  Ulasan &amp; Pengalaman Pemakaian <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Ceritakan bagaimana efeknya pada kulit Anda, tekstur produk, aroma, dan kecepatan hasil yang dirasakan..."
+                  className="w-full p-3 rounded-2xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20 text-xs"
+                />
+              </div>
+
+              {/* Dokumentasi Foto / Video */}
+              <div className="p-3.5 bg-rose-50/40 rounded-2xl border border-rose-100/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-stone-800 flex items-center gap-1.5 text-xs">
+                    <Camera className="w-4 h-4 text-rose-600" />
+                    Lampirkan Dokumentasi Pembeli (Opsional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setReviewMediaType("image")}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                        reviewMediaType === "image"
+                          ? "bg-rose-600 text-white"
+                          : "bg-white text-stone-600 border border-stone-200"
+                      }`}
+                    >
+                      Foto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewMediaType("video")}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                        reviewMediaType === "video"
+                          ? "bg-rose-600 text-white"
+                          : "bg-white text-stone-600 border border-stone-200"
+                      }`}
+                    >
+                      Video
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="url"
+                    value={reviewMediaUrl}
+                    onChange={(e) => setReviewMediaUrl(e.target.value)}
+                    placeholder={
+                      reviewMediaType === "video"
+                        ? "Masukkan URL video MP4 (contoh: https://assets.mixkit.co/...)"
+                        : "Masukkan URL foto (contoh: https://images.unsplash.com/...)"
+                    }
+                    className="w-full p-2.5 rounded-xl border border-stone-200 bg-white text-xs"
+                  />
+                </div>
+
+                {/* Quick Presets for Demo / Testing */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-[10px] text-stone-500">Contoh Cepat:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewMediaType("image");
+                      setReviewMediaUrl(
+                        "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80"
+                      );
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-600 hover:text-stone-900 text-[10px] font-medium cursor-pointer"
+                  >
+                    + Foto Tekstur Skincare
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewMediaType("video");
+                      setReviewMediaUrl(
+                        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                      );
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-600 hover:text-stone-900 text-[10px] font-medium cursor-pointer"
+                  >
+                    + Video Pemakaian
+                  </button>
+                </div>
+
+                {/* Live Preview */}
+                {reviewMediaUrl && (
+                  <div className="mt-2 p-2 rounded-xl bg-white border border-stone-200">
+                    <span className="text-[10px] font-bold text-stone-500 block mb-1">
+                      Pratinjau Dokumentasi:
+                    </span>
+                    {reviewMediaType === "video" ? (
+                      <video
+                        src={reviewMediaUrl}
+                        controls
+                        className="w-full max-h-36 object-contain rounded-lg bg-black"
+                      />
+                    ) : (
+                      <img
+                        src={reviewMediaUrl}
+                        alt="Preview ulasan"
+                        className="w-full max-h-36 object-cover rounded-lg"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-stone-200">
+                <button
+                  type="button"
+                  onClick={() => setIsWriteReviewOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-stone-200 text-stone-600 font-semibold cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={reviewSubmitting}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  {reviewSubmitting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Mengirim...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Publikasikan Penilaian</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <Footer />

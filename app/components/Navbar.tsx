@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Sparkles,
   ShoppingCart,
-  ShoppingBag,
   Menu,
   X,
   Compass,
@@ -13,15 +12,116 @@ import {
   BookOpen,
   HelpCircle,
   MessageCircle,
+  User,
+  LogOut,
+  Tag,
 } from "lucide-react";
+import CustomerAuthModal from "./CustomerAuthModal";
+import NotificationDropdown, { AppNotification } from "./NotificationDropdown";
 
 interface NavbarProps {
   totalCartItems: number;
   onOpenCart: () => void;
 }
 
+interface CustomerData {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  loyaltyPoints?: number;
+  loyaltyTier?: string;
+  purchasedProductIds?: number[];
+  unreadNotificationsCount?: number;
+  notifications?: AppNotification[];
+}
+
 export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [customer, setCustomer] = useState<CustomerData | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [activeEventBanner, setActiveEventBanner] = useState<string | null>(null);
+
+  // Fetch current logged-in customer info
+  const fetchCustomer = async () => {
+    try {
+      const res = await fetch("/api/customer/me");
+      const data = await res.json();
+      if (data.authenticated && data.customer) {
+        setCustomer(data.customer);
+      } else {
+        setCustomer(null);
+      }
+    } catch {
+      setCustomer(null);
+    }
+  };
+
+  // Fetch active promo event banner (e.g. 12.1, 11.2, 10.3)
+  const fetchActiveEvent = async () => {
+    try {
+      const res = await fetch("/api/events");
+      const data = await res.json();
+      if (data.success && data.events && data.events.length > 0) {
+        const topEvent = data.events[0];
+        setActiveEventBanner(topEvent.bannerText || `🔥 Promo Spesial ${topEvent.title}: Diskon ${topEvent.discountPercent}%!`);
+      } else {
+        setActiveEventBanner(null);
+      }
+    } catch {
+      setActiveEventBanner(null);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const init = async () => {
+      try {
+        const [resCust, resEvt] = await Promise.all([
+          fetch("/api/customer/me"),
+          fetch("/api/events"),
+        ]);
+        if (!isMounted) return;
+        const custData = await resCust.json();
+        if (custData.authenticated && custData.customer) {
+          setCustomer(custData.customer);
+        } else {
+          setCustomer(null);
+        }
+        const evtData = await resEvt.json();
+        if (evtData.success && evtData.events && evtData.events.length > 0) {
+          const topEvent = evtData.events[0];
+          setActiveEventBanner(
+            topEvent.bannerText ||
+              `🔥 Promo Spesial ${topEvent.title}: Diskon ${topEvent.discountPercent}%!`
+          );
+        } else {
+          setActiveEventBanner(null);
+        }
+      } catch {
+        if (isMounted) {
+          setCustomer(null);
+          setActiveEventBanner(null);
+        }
+      }
+    };
+
+    void init();
+
+    const handleCustomerUpdate = () => fetchCustomer();
+    const handleEventsUpdate = () => fetchActiveEvent();
+
+    window.addEventListener("beautycare-customer-updated", handleCustomerUpdate);
+    window.addEventListener("beautycare-events-updated", handleEventsUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("beautycare-customer-updated", handleCustomerUpdate);
+      window.removeEventListener("beautycare-events-updated", handleEventsUpdate);
+    };
+  }, []);
 
   // Close mobile menu on Escape key
   useEffect(() => {
@@ -56,13 +156,25 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
     };
   }, [isMobileMenuOpen]);
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/customer/logout", { method: "POST" });
+      setCustomer(null);
+      setIsProfileMenuOpen(false);
+      setIsMobileMenuOpen(false);
+      window.dispatchEvent(new Event("beautycare-customer-updated"));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <>
-      {/* Top Banner Announcement */}
+      {/* Top Banner Announcement (Shows active 12.1/11.2/10.3 event or default repurchase promo) */}
       <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-3 text-center font-medium tracking-wide flex items-center justify-center gap-1 sm:gap-2 relative z-30">
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
-        <span className="truncate sm:overflow-visible">
-          Promo Repurchase: Kumpulkan Poin Loyalty &amp; Gratis Ongkir Se-Indonesia
+        <span className="truncate sm:overflow-visible font-semibold">
+          {activeEventBanner || "Promo Repurchase: Kumpulkan Poin Loyalty & Gratis Ongkir Se-Indonesia"}
         </span>
         <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
       </div>
@@ -120,6 +232,13 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
 
           {/* Right Action Area */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* Notification Dropdown for Events & Updates */}
+            <NotificationDropdown
+              notifications={customer?.notifications || []}
+              unreadCount={customer?.unreadNotificationsCount || 0}
+              onRefresh={fetchCustomer}
+            />
+
             {/* Cart Icon: Always visible, badge shows when totalCartItems > 0 */}
             <button
               onClick={() => {
@@ -142,14 +261,65 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
               )}
             </button>
 
-            {/* Desktop CTA Button (Visible on sm and above) */}
-            <Link
-              href="/#katalog"
-              className="hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm sm:shadow-md shadow-rose-500/25 items-center gap-1 sm:gap-2 group cursor-pointer shrink-0"
-            >
-              <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:rotate-12 transition-transform duration-200" />
-              <span>Belanja Sekarang</span>
-            </Link>
+            {/* Customer Auth Button: "Login | Register" (or User Profile if logged in) */}
+            {customer ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                  className="hidden sm:flex items-center gap-2 py-1.5 px-3 rounded-lg sm:rounded-xl bg-rose-50 border border-rose-200/90 text-stone-800 hover:bg-rose-100/70 transition cursor-pointer text-xs font-bold"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold text-[10px]">
+                    {customer.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="truncate max-w-[110px]">{customer.name.split(" ")[0]}</span>
+                </button>
+
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 p-2 z-50 animate-fade-in-down">
+                    <div className="px-3 py-2.5 border-b border-stone-100">
+                      <p className="font-extrabold text-xs text-stone-900 truncate">{customer.name}</p>
+                      <p className="text-[10px] text-stone-400 truncate">{customer.email}</p>
+                      <div className="mt-2 flex items-center justify-between text-[10px] font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200/60 text-amber-800">
+                        <span>Poin Loyalitas:</span>
+                        <span>{customer.loyaltyPoints || 0} Poin</span>
+                      </div>
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        href="/#loyalty"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition"
+                      >
+                        <Award className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Tukar Poin Diskon</span>
+                      </Link>
+                    </div>
+
+                    <div className="pt-1 border-t border-stone-100">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Keluar (Logout)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setAuthMode("login");
+                  setIsAuthModalOpen(true);
+                }}
+                className="hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm sm:shadow-md shadow-rose-600/25 items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Login | Register</span>
+              </button>
+            )}
 
             {/* Hamburger Button for Tablet & Mobile (Visible on < lg) */}
             <button
@@ -171,10 +341,45 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           </div>
         </div>
 
-        {/* Mobile & Tablet Dropdown Menu (Attached cleanly beneath the navbar, NEVER buried or overlapping) */}
+        {/* Mobile & Tablet Dropdown Menu (Attached cleanly beneath the navbar) */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 right-0 z-50 bg-white/98 backdrop-blur-md border-b border-stone-200/90 shadow-2xl animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-3">
+              {/* Customer status header in mobile menu */}
+              {customer ? (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                      {customer.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-stone-900 block">{customer.name}</span>
+                      <span className="text-[10px] text-stone-500 font-medium">
+                        {customer.loyaltyPoints || 0} Poin • Tier {customer.loyaltyTier || "SILVER"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-rose-200"
+                  >
+                    <LogOut className="w-3 h-3" /> Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setAuthMode("login");
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Login | Register Akun Customer</span>
+                </button>
+              )}
+
               {/* Navigation Links Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                 {[
@@ -244,8 +449,8 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
                 </span>
               </button>
 
-              {/* Quick Action Buttons */}
-              <div className="pt-2 border-t border-stone-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* WhatsApp Help Action */}
+              <div className="pt-1">
                 <a
                   href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20konsultasi%20produk"
                   target="_blank"
@@ -255,22 +460,13 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
                   <MessageCircle className="w-4 h-4" />
                   <span>WhatsApp CS Resmi</span>
                 </a>
-
-                <Link
-                  href="/#katalog"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Belanja Sekarang</span>
-                </Link>
               </div>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Global Backdrop for Mobile Menu (Placed outside nav at z-[45] so it covers page content cleanly) */}
+      {/* Global Backdrop for Mobile Menu */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-[45] bg-stone-950/50 backdrop-blur-xs transition-opacity animate-fade-in lg:hidden cursor-pointer"
@@ -278,6 +474,16 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           aria-hidden="true"
         />
       )}
+
+      {/* Customer Auth Modal (Login & Register) */}
+      <CustomerAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authMode}
+        onSuccess={() => {
+          fetchCustomer();
+        }}
+      />
     </>
   );
 }

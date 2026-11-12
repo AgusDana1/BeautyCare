@@ -43,8 +43,37 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+function getPrismaClient(): PrismaClient {
+  // If global client is missing or is stale (e.g. missing newly added fields on user)
+  if (
+    !globalForPrisma.prisma ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !(globalForPrisma.prisma as any).user?.fields?.phone
+  ) {
+    if (globalForPrisma.prisma) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof (globalForPrisma.prisma as any).$disconnect === "function") {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (globalForPrisma.prisma as any).$disconnect().catch(() => {});
+      }
+    }
+    const freshClient = createPrismaClient();
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prisma = freshClient;
+    }
+    return freshClient;
+  }
+  return globalForPrisma.prisma;
 }
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const value = (client as any)[prop];
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});

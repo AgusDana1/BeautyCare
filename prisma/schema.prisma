@@ -7,9 +7,19 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  phone         String?
+  password      String
+  role          String         @default("CUSTOMER")
+  avatar        String?        @db.Text
+  address       String?        @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reviews       Review[]
+  orders        Order[]
+  notifications Notification[]
 }
 
 model Admin {
@@ -60,6 +70,8 @@ model Review {
   id              Int              @id @default(autoincrement())
   productId       Int
   product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId          Int?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   reviewerName    String
   rating          Int              @default(5)
   comment         String           @db.Text
@@ -128,6 +140,8 @@ model ProductVariant {
 model Order {
   id              Int         @id @default(autoincrement())
   invoiceNumber   String      @unique
+  userId          Int?
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   customerName    String
   customerEmail   String
   customerPhone   String
@@ -158,4 +172,35 @@ model OrderItem {
   quantity     Int             @default(1)
   price        Decimal         @db.Decimal(10, 2)
   subtotal     Decimal         @db.Decimal(10, 2)
+}
+
+model PromoEvent {
+  id              Int            @id @default(autoincrement())
+  title           String
+  code            String         @unique
+  description     String         @db.Text
+  bannerText      String?
+  discountPercent Int            @default(20)
+  eventMonth      Int?           // e.g. 10, 11, 12
+  eventDay        Int?           // e.g. 1, 2, 3
+  startDate       DateTime       @default(now())
+  endDate         DateTime
+  isActive        Boolean        @default(true)
+  notifications   Notification[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Notification {
+  id          Int         @id @default(autoincrement())
+  userId      Int?        // null for broadcast to all customers
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId     Int?
+  event       PromoEvent? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  title       String
+  message     String      @db.Text
+  type        String      @default("EVENT") // "EVENT", "UPDATE", "ORDER", "SYSTEM"
+  link        String?     @default("/#katalog")
+  isRead      Boolean     @default(false)
+  createdAt   DateTime    @default(now())
 }
