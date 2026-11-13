@@ -1,19 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentCustomer } from "@/lib/auth";
+import { getClientIp, checkReviewRateLimit } from "@/lib/rateLimit";
+import { sanitizeText, sanitizeUrl, sanitizeNumber } from "@/lib/security";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const ip = getClientIp(request);
+
+    // 1. Anti-Spam Rate Limiting for Reviews
+    const rateLimit = checkReviewRateLimit(ip);
+    if (!rateLimit.allowed) {
+      const waitSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return NextResponse.json(
+        {
+          error: `Terlalu banyak ulasan dikirim dalam waktu singkat. Mohon tunggu ${waitSeconds} detik.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const { id } = await params;
     const numericProductId = parseInt(id, 10);
     if (isNaN(numericProductId)) {
       return NextResponse.json({ error: "ID produk tidak valid" }, { status: 400 });
     }
 
-    // 1. Customer MUST be logged in
+    // 2. Customer MUST be logged in
     const customer = await getCurrentCustomer();
     if (!customer) {
       return NextResponse.json(
@@ -22,7 +38,7 @@ export async function POST(
       );
     }
 
-    // 2. Customer MUST have purchased the product
+    // 3. Customer MUST have purchased the product (Verified Buyer Guarantee)
     const purchase = await prisma.order.findFirst({
       where: {
         OR: [
@@ -54,23 +70,21 @@ export async function POST(
     const body = await request.json();
     const { rating, comment, selectedVariant, mediaUrl, mediaType } = body;
 
-    const numRating = Number(rating);
-    if (!numRating || numRating < 1 || numRating > 5) {
-      return NextResponse.json({ error: "Rating bintang 1-5 wajib dipilih." }, { status: 400 });
-    }
+    const numRating = sanitizeNumber(rating, 1, 5, 5);
+    const cleanComment = sanitizeText(comment, 1000);
+    const cleanMediaUrl = mediaUrl ? sanitizeUrl(mediaUrl) : null;
+    const cleanMediaType = mediaType === "video" ? "video" : "image";
+    const cleanVariant = sanitizeText(
+      selectedVariant || purchase.items[0]?.selectedSize || "Ukuran Standar",
+      40
+    );
 
-    if (!comment || comment.trim().length < 5) {
+    if (cleanComment.length < 5) {
       return NextResponse.json(
-        { error: "Ulasan komentar minimal 5 karakter." },
+        { error: "Ulasan komentar minimal 5 karakter teks valid." },
         { status: 400 }
       );
     }
-
-    // Default variant if not passed
-    const defaultVariant =
-      selectedVariant ||
-      purchase.items[0]?.selectedSize ||
-      "Ukuran Standar";
 
     const review = await prisma.review.create({
       data: {
@@ -78,12 +92,12 @@ export async function POST(
         userId: customer.id,
         reviewerName: customer.name,
         rating: numRating,
-        comment: comment.trim(),
+        comment: cleanComment,
         userLocation: "Indonesia",
         userAvatar: null,
-        mediaUrl: mediaUrl?.trim() || null,
-        mediaType: mediaType === "video" ? "video" : "image",
-        selectedVariant: defaultVariant,
+        mediaUrl: cleanMediaUrl,
+        mediaType: cleanMediaType,
+        selectedVariant: cleanVariant,
         helpfulCount: 0,
       },
     });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/auth";
+import { sanitizeText, sanitizeNumber } from "@/lib/security";
 
 export async function PATCH(
   request: Request,
@@ -35,13 +36,13 @@ export async function PATCH(
     const updated = await prisma.promoEvent.update({
       where: { id: numericId },
       data: {
-        ...(title !== undefined && { title: title.trim() }),
-        ...(code !== undefined && { code: code.toUpperCase().trim() }),
-        ...(description !== undefined && { description }),
-        ...(bannerText !== undefined && { bannerText }),
-        ...(discountPercent !== undefined && { discountPercent: Number(discountPercent) }),
-        ...(eventMonth !== undefined && { eventMonth: Number(eventMonth) || null }),
-        ...(eventDay !== undefined && { eventDay: Number(eventDay) || null }),
+        ...(title !== undefined && { title: sanitizeText(title, 100) }),
+        ...(code !== undefined && { code: sanitizeText(code, 30).toUpperCase().replace(/[^A-Z0-9_-]/g, "") }),
+        ...(description !== undefined && { description: sanitizeText(description, 500) }),
+        ...(bannerText !== undefined && { bannerText: sanitizeText(bannerText, 250) }),
+        ...(discountPercent !== undefined && { discountPercent: sanitizeNumber(discountPercent, 1, 99, 20) }),
+        ...(eventMonth !== undefined && { eventMonth: eventMonth ? sanitizeNumber(eventMonth, 1, 12, 1) : null }),
+        ...(eventDay !== undefined && { eventDay: eventDay ? sanitizeNumber(eventDay, 1, 31, 1) : null }),
         ...(startDate !== undefined && { startDate: new Date(startDate) }),
         ...(endDate !== undefined && { endDate: new Date(endDate) }),
         ...(isActive !== undefined && { isActive: Boolean(isActive) }),

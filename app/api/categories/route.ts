@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/auth";
+import { sanitizeText } from "@/lib/security";
 
 export async function GET() {
   try {
@@ -27,20 +28,23 @@ export async function POST(request: Request) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Akses ditolak. Sesi admin diperlukan." }, { status: 401 });
     }
 
     const body = await request.json();
     const { name, description } = body;
 
-    if (!name || !name.trim()) {
+    const cleanName = sanitizeText(name, 80);
+    const cleanDescription = sanitizeText(description, 300);
+
+    if (!cleanName) {
       return NextResponse.json(
         { error: "Nama kategori wajib diisi" },
         { status: 400 }
       );
     }
 
-    const slug = name
+    const slug = cleanName
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, "-")
@@ -48,9 +52,9 @@ export async function POST(request: Request) {
 
     const category = await prisma.category.create({
       data: {
-        name: name.trim(),
+        name: cleanName,
         slug,
-        description: description?.trim() || null,
+        description: cleanDescription || null,
       },
     });
 
@@ -58,7 +62,7 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     console.error("Error creating category:", error);
     return NextResponse.json(
-      { error: "Gagal menambahkan kategori. Pastikan nama tidak duplikat." },
+      { error: "Gagal menambahkan kategori. Pastikan nama belum pernah digunakan." },
       { status: 500 }
     );
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/auth";
+import { sanitizeText, sanitizeUrl, sanitizeNumber } from "@/lib/security";
 
 export async function GET(
   request: Request,
@@ -9,6 +10,9 @@ export async function GET(
   try {
     const { id } = await params;
     const productId = parseInt(id, 10);
+    if (isNaN(productId)) {
+      return NextResponse.json({ error: "ID produk tidak valid" }, { status: 400 });
+    }
 
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -41,11 +45,15 @@ export async function PUT(
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Akses ditolak. Sesi admin diperlukan." }, { status: 401 });
     }
 
     const { id } = await params;
     const productId = parseInt(id, 10);
+    if (isNaN(productId)) {
+      return NextResponse.json({ error: "ID produk tidak valid" }, { status: 400 });
+    }
+
     const body = await request.json();
     const {
       name,
@@ -58,9 +66,19 @@ export async function PUT(
       variants,
     } = body;
 
-    const parsedPrice = parseFloat(price);
-    const parsedStock = parseInt(stock || "0", 10);
+    const cleanName = sanitizeText(name, 120);
+    const cleanDescription = sanitizeText(description, 3000);
+    const cleanImage = image ? sanitizeUrl(image) : null;
+    const parsedPrice = sanitizeNumber(price, 0, 1000000000, 0);
+    const parsedStock = sanitizeNumber(stock, 0, 1000000, 0);
     const parsedCategoryId = parseInt(categoryId, 10);
+
+    if (!cleanName || isNaN(parsedCategoryId) || parsedPrice <= 0) {
+      return NextResponse.json(
+        { error: "Nama, Kategori, dan Harga valid wajib diisi" },
+        { status: 400 }
+      );
+    }
 
     // Delete existing variants and re-create if hasVariants is true
     await prisma.productVariant.deleteMany({
@@ -77,13 +95,14 @@ export async function PUT(
     let totalStock = parsedStock;
 
     if (hasVariants && Array.isArray(variants) && variants.length > 0) {
-      variantCreates = variants.map((v: { size: string; price?: number | string; stock?: number | string }) => {
-        const sizeNumMatch = v.size.match(/\d+/);
+      variantCreates = variants.slice(0, 20).map((v: { size: string; price?: number | string; stock?: number | string }) => {
+        const cleanSize = sanitizeText(v.size, 30);
+        const sizeNumMatch = cleanSize.match(/\d+/);
         const sizeValue = sizeNumMatch ? parseInt(sizeNumMatch[0], 10) : null;
-        const vPrice = v.price !== undefined ? parseFloat(String(v.price)) : parsedPrice;
-        const vStock = v.stock !== undefined ? parseInt(String(v.stock), 10) : 0;
+        const vPrice = v.price !== undefined ? sanitizeNumber(v.price, 0, 1000000000, parsedPrice) : parsedPrice;
+        const vStock = v.stock !== undefined ? sanitizeNumber(v.stock, 0, 1000000, 0) : 0;
         return {
-          size: v.size.trim(),
+          size: cleanSize,
           sizeValue,
           price: vPrice,
           stock: vStock,
@@ -96,9 +115,9 @@ export async function PUT(
     const updated = await prisma.product.update({
       where: { id: productId },
       data: {
-        name: name.trim(),
-        description: description?.trim() || "",
-        image: image?.trim() || null,
+        name: cleanName,
+        description: cleanDescription || "",
+        image: cleanImage,
         price: parsedPrice,
         stock: totalStock,
         hasVariants: Boolean(hasVariants && variantCreates.length > 0),
@@ -132,11 +151,14 @@ export async function DELETE(
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Akses ditolak. Sesi admin diperlukan." }, { status: 401 });
     }
 
     const { id } = await params;
     const productId = parseInt(id, 10);
+    if (isNaN(productId)) {
+      return NextResponse.json({ error: "ID produk tidak valid" }, { status: 400 });
+    }
 
     await prisma.product.delete({
       where: { id: productId },

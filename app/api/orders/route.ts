@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentAdmin } from "@/lib/auth";
+import { getCurrentAdmin, getCurrentCustomer } from "@/lib/auth";
+import { getClientIp, checkOrderRateLimit } from "@/lib/rateLimit";
+import {
+  sanitizeText,
+  sanitizeEmail,
+  sanitizePhone,
+  sanitizeNumber,
+} from "@/lib/security";
 
 export async function GET(request: Request) {
   try {
@@ -17,19 +24,20 @@ export async function GET(request: Request) {
     const where: Record<string, unknown> = {};
 
     if (orderStatus && orderStatus !== "ALL") {
-      where.orderStatus = orderStatus;
+      where.orderStatus = sanitizeText(orderStatus, 30);
     }
 
     if (paymentStatus && paymentStatus !== "ALL") {
-      where.paymentStatus = paymentStatus;
+      where.paymentStatus = sanitizeText(paymentStatus, 30);
     }
 
     if (search && search.trim()) {
+      const cleanSearch = sanitizeText(search, 50);
       where.OR = [
-        { invoiceNumber: { contains: search.trim() } },
-        { customerName: { contains: search.trim() } },
-        { customerPhone: { contains: search.trim() } },
-        { customerEmail: { contains: search.trim() } },
+        { invoiceNumber: { contains: cleanSearch } },
+        { customerName: { contains: cleanSearch } },
+        { customerPhone: { contains: cleanSearch } },
+        { customerEmail: { contains: cleanSearch } },
       ];
     }
 
@@ -58,6 +66,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+
+    // 1. Anti-Inventory Depletion Rate Limiting
+    const rateLimit = checkOrderRateLimit(ip);
+    if (!rateLimit.allowed) {
+      const waitSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return NextResponse.json(
+        {
+          error: `Terlalu banyak pesanan dibuat dalam waktu singkat. Mohon tunggu ${waitSeconds} detik.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const {
       customerName,
@@ -71,21 +93,41 @@ export async function POST(request: Request) {
       redeemPoints,
     } = body;
 
+    // 2. Strict Input Sanitization (Defense against Stored XSS)
+    const cleanName = sanitizeText(customerName, 80);
+    const cleanEmail = sanitizeEmail(customerEmail);
+    const cleanPhone = sanitizePhone(customerPhone);
+    const cleanAddress = sanitizeText(customerAddress, 250);
+    const cleanNotes = sanitizeText(notes, 300);
+    const cleanPaymentMethod = sanitizeText(paymentMethod, 30);
+    const cleanPaymentChannel = sanitizeText(paymentChannel || paymentMethod, 30);
+
     if (
-      !customerName ||
-      !customerPhone ||
-      !customerAddress ||
-      !paymentMethod ||
+      !cleanName ||
+      !cleanPhone ||
+      !cleanAddress ||
+      !cleanPaymentMethod ||
       !Array.isArray(items) ||
       items.length === 0
     ) {
       return NextResponse.json(
-        { error: "Semua data pelanggan dan item pesanan wajib diisi lengkap" },
+        { error: "Semua data pelanggan dan item pesanan wajib diisi dengan benar." },
         { status: 400 }
       );
     }
 
-    // Generate Invoice Number
+    // Limit maximum items per order to prevent resource exhaustion
+    if (items.length > 30) {
+      return NextResponse.json(
+        { error: "Jumlah item dalam satu pesanan maksimal 30 varian." },
+        { status: 400 }
+      );
+    }
+
+    // Identify customer session if logged in
+    const customer = await getCurrentCustomer();
+
+    // Generate Invoice Number (Cryptographically random suffix)
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
@@ -103,7 +145,12 @@ export async function POST(request: Request) {
 
     for (const item of items) {
       const productId = parseInt(item.productId, 10);
-      const quantity = Math.max(1, parseInt(item.quantity, 10) || 1);
+      // Strictly enforce quantity between 1 and 50 to prevent integer overflow / abuse
+      const quantity = Math.min(50, Math.max(1, parseInt(item.quantity, 10) || 1));
+
+      if (isNaN(productId)) {
+        return NextResponse.json({ error: "ID produk tidak valid" }, { status: 400 });
+      }
 
       const product = await prisma.product.findUnique({
         where: { id: productId },
@@ -189,18 +236,20 @@ export async function POST(request: Request) {
     // Process Loyalty Points & Discounts
     let discountAmount = 0;
     let pointsRedeemed = 0;
-    const cleanPhone = customerPhone.replace(/[^0-9]/g, "");
+    const cleanPhoneDigits = cleanPhone.replace(/[^0-9]/g, "");
 
     const loyaltyMember = await prisma.customerLoyalty.findFirst({
       where: {
-        OR: [{ phone: cleanPhone }, { phone: customerPhone.trim() }],
+        OR: [{ phone: cleanPhoneDigits }, { phone: cleanPhone }],
       },
     });
 
-    if (redeemPoints && redeemPoints > 0 && loyaltyMember && loyaltyMember.points > 0) {
+    const parsedRedeemPoints = sanitizeNumber(redeemPoints, 0, 1000000, 0);
+
+    if (parsedRedeemPoints > 0 && loyaltyMember && loyaltyMember.points > 0) {
       // 1 poin = Rp 100 potongan harga, maksimal 50% dari total belanja
       const maxAllowedDiscount = Math.floor(totalAmount * 0.5);
-      const requestedDiscount = Math.min(redeemPoints * 100, loyaltyMember.points * 100);
+      const requestedDiscount = Math.min(parsedRedeemPoints * 100, loyaltyMember.points * 100);
       discountAmount = Math.min(requestedDiscount, maxAllowedDiscount);
       pointsRedeemed = Math.floor(discountAmount / 100);
 
@@ -240,7 +289,7 @@ export async function POST(request: Request) {
             points: { increment: pointsEarned },
             totalSpent: newTotalSpent,
             tier: newTier,
-            name: customerName.trim(),
+            name: cleanName,
             history: {
               create: {
                 points: pointsEarned,
@@ -253,9 +302,9 @@ export async function POST(request: Request) {
       } else {
         await prisma.customerLoyalty.create({
           data: {
-            phone: cleanPhone || customerPhone.trim(),
-            name: customerName.trim(),
-            email: customerEmail?.trim() || null,
+            phone: cleanPhoneDigits,
+            name: cleanName,
+            email: cleanEmail,
             points: pointsEarned,
             tier: "SILVER",
             totalSpent: finalTotalAmount,
@@ -274,19 +323,20 @@ export async function POST(request: Request) {
     const order = await prisma.order.create({
       data: {
         invoiceNumber,
-        customerName: customerName.trim(),
-        customerEmail: customerEmail?.trim() || "",
-        customerPhone: customerPhone.trim(),
-        customerAddress: customerAddress.trim(),
-        paymentMethod,
-        paymentChannel: paymentChannel || paymentMethod,
+        userId: customer ? customer.id : null,
+        customerName: cleanName,
+        customerEmail: cleanEmail || "",
+        customerPhone: cleanPhone,
+        customerAddress: cleanAddress,
+        paymentMethod: cleanPaymentMethod,
+        paymentChannel: cleanPaymentChannel,
         paymentStatus: "PENDING",
         orderStatus: "PENDING",
         totalAmount: finalTotalAmount,
         discountAmount,
         pointsEarned,
         pointsRedeemed,
-        notes: notes?.trim() || null,
+        notes: cleanNotes || null,
         items: {
           create: orderItemsData,
         },

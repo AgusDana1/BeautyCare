@@ -2,27 +2,67 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { createCustomerToken } from "@/lib/auth";
+import { getClientIp, checkCustomerRegisterRateLimit } from "@/lib/rateLimit";
+import {
+  sanitizeText,
+  sanitizeEmail,
+  sanitizePhone,
+  validatePassword,
+} from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+
+    // 1. Anti-Bot / Anti-Spam Registration Rate Limiting
+    const rateLimit = checkCustomerRegisterRateLimit(ip);
+    if (!rateLimit.allowed) {
+      const waitMinutes = Math.ceil((rateLimit.resetAt - Date.now()) / (60 * 1000));
+      return NextResponse.json(
+        {
+          error: `Batas pendaftaran akun terlampaui. Mohon tunggu ${waitMinutes} menit sebelum mendaftarkan akun baru lagi.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { name, email, phone, password } = body;
 
-    if (!name || !email || !password) {
+    const cleanName = sanitizeText(name, 80);
+    const cleanEmail = sanitizeEmail(email);
+    const cleanPhone = phone ? sanitizePhone(phone) : null;
+    const pwdValidation = validatePassword(password);
+
+    if (!cleanName || cleanName.length < 2) {
       return NextResponse.json(
-        { error: "Nama, email, dan password wajib diisi." },
+        { error: "Nama lengkap wajib diisi minimal 2 karakter." },
+        { status: 400 }
+      );
+    }
+
+    if (!cleanEmail) {
+      return NextResponse.json(
+        { error: "Format alamat email tidak valid." },
+        { status: 400 }
+      );
+    }
+
+    if (!pwdValidation.valid) {
+      return NextResponse.json(
+        { error: pwdValidation.error || "Password tidak valid." },
         { status: 400 }
       );
     }
 
     // Check if email already registered
     const existing = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: cleanEmail },
     });
 
     if (existing) {
       return NextResponse.json(
-        { error: "Email sudah terdaftar. Silakan login." },
+        { error: "Email ini sudah terdaftar. Silakan gunakan email lain atau login." },
         { status: 400 }
       );
     }
@@ -31,17 +71,16 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.create({
       data: {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone ? phone.trim() : null,
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
         password: hashedPassword,
         role: "CUSTOMER",
       },
     });
 
     // Create or link CustomerLoyalty if phone provided
-    if (phone) {
-      const cleanPhone = phone.replace(/[^0-9]/g, "");
+    if (cleanPhone) {
       const existingLoyalty = await prisma.customerLoyalty.findUnique({
         where: { phone: cleanPhone },
       });
@@ -108,7 +147,7 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     console.error("Register error:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat pendaftaran akun." },
+      { error: "Terjadi kesalahan pada sistem saat pendaftaran akun." },
       { status: 500 }
     );
   }

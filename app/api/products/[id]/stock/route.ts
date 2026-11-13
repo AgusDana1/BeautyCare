@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/auth";
+import { sanitizeNumber } from "@/lib/security";
 
 export async function PATCH(
   request: Request,
@@ -9,26 +10,35 @@ export async function PATCH(
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Akses ditolak. Sesi admin diperlukan." }, { status: 401 });
     }
 
     const { id } = await params;
     const productId = parseInt(id, 10);
+    if (isNaN(productId)) {
+      return NextResponse.json({ error: "ID produk tidak valid." }, { status: 400 });
+    }
+
     const body = await request.json();
     const { variantId, stock } = body;
 
-    const newStock = parseInt(stock, 10);
-    if (isNaN(newStock) || newStock < 0) {
+    const newStock = sanitizeNumber(stock, 0, 1000000, -1);
+    if (newStock < 0) {
       return NextResponse.json(
-        { error: "Nilai stok harus berupa angka positif" },
+        { error: "Nilai stok harus berupa angka positif valid." },
         { status: 400 }
       );
     }
 
     if (variantId) {
+      const vId = parseInt(variantId, 10);
+      if (isNaN(vId)) {
+        return NextResponse.json({ error: "ID varian tidak valid." }, { status: 400 });
+      }
+
       // Update specific variant stock
       const updatedVariant = await prisma.productVariant.update({
-        where: { id: parseInt(variantId, 10) },
+        where: { id: vId },
         data: { stock: newStock },
       });
 

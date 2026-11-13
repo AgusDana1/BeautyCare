@@ -2,36 +2,59 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { createToken } from "@/lib/auth";
+import { getClientIp, checkAdminLoginRateLimit } from "@/lib/rateLimit";
+import { sanitizeText, validatePassword } from "@/lib/security";
+
+// Dummy hash for constant-time comparison when admin username is not found (prevents timing enumeration)
+const DUMMY_HASH = "$2b$10$abcdefghijklmnopqrstuvwxyzABCDEF0123456789dummyhashdemo";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+
+    // 1. Anti-Brute-Force & Anti-DDoS Rate Limiting
+    const rateLimit = checkAdminLoginRateLimit(ip);
+    if (!rateLimit.allowed) {
+      const waitSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return NextResponse.json(
+        {
+          error: `Terlalu banyak percobaan login admin yang gagal. Silakan coba lagi dalam ${waitSeconds} detik.`,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(waitSeconds),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { identifier, password } = body;
 
-    if (!identifier || !password) {
+    const cleanIdentifier = sanitizeText(identifier, 100);
+    const pwdValidation = validatePassword(password);
+
+    if (!cleanIdentifier || !pwdValidation.valid) {
       return NextResponse.json(
-        { error: "Username/Email dan password wajib diisi" },
+        { error: "Username/Email dan password wajib diisi." },
         { status: 400 }
       );
     }
 
     const admin = await prisma.admin.findFirst({
       where: {
-        OR: [{ username: identifier }, { email: identifier }],
+        OR: [{ username: cleanIdentifier }, { email: cleanIdentifier }],
       },
     });
 
-    if (!admin) {
-      return NextResponse.json(
-        { error: "Akun admin tidak ditemukan atau kredensial salah" },
-        { status: 401 }
-      );
-    }
+    // Constant-time execution: always run bcrypt comparison even if admin doesn't exist
+    const hashToCompare = admin ? admin.password : DUMMY_HASH;
+    const isMatch = await bcrypt.compare(password, hashToCompare);
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
+    if (!admin || !isMatch) {
       return NextResponse.json(
-        { error: "Kredensial tidak valid" },
+        { error: "Kredensial login tidak valid. Silakan periksa kembali username dan password Anda." },
         { status: 401 }
       );
     }
@@ -68,7 +91,7 @@ export async function POST(request: Request) {
   } catch (err: unknown) {
     console.error("Login error:", err);
     return NextResponse.json(
-      { error: "Terjadi kesalahan pada server saat login" },
+      { error: "Terjadi kesalahan pada server saat proses login." },
       { status: 500 }
     );
   }

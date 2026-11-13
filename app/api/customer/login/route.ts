@@ -2,20 +2,42 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { createCustomerToken } from "@/lib/auth";
+import { getClientIp, checkCustomerLoginRateLimit } from "@/lib/rateLimit";
+import { sanitizeText, validatePassword } from "@/lib/security";
+
+const DUMMY_HASH = "$2b$10$abcdefghijklmnopqrstuvwxyzABCDEF0123456789dummyhashdemo";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { identifier, password } = body;
+    const ip = getClientIp(request);
 
-    if (!identifier || !password) {
+    // 1. Rate limit to prevent brute force & credential stuffing
+    const rateLimit = checkCustomerLoginRateLimit(ip);
+    if (!rateLimit.allowed) {
+      const waitSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
       return NextResponse.json(
-        { error: "Email/Nomor HP dan password wajib diisi." },
-        { status: 400 }
+        {
+          error: `Terlalu banyak percobaan login gagal. Mohon tunggu ${waitSeconds} detik sebelum mencoba lagi.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(waitSeconds) },
+        }
       );
     }
 
-    const cleanIdentifier = identifier.trim();
+    const body = await request.json();
+    const { identifier, password } = body;
+
+    const cleanIdentifier = sanitizeText(identifier, 100);
+    const pwdValidation = validatePassword(password);
+
+    if (!cleanIdentifier || !pwdValidation.valid) {
+      return NextResponse.json(
+        { error: "Email/Nomor HP dan password wajib diisi dengan benar." },
+        { status: 400 }
+      );
+    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -26,17 +48,13 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Akun tidak ditemukan. Silakan cek email/nomor HP Anda atau daftar terlebih dahulu." },
-        { status: 401 }
-      );
-    }
+    // Constant-time execution to prevent timing-based user enumeration
+    const hashToCompare = user ? user.password : DUMMY_HASH;
+    const isMatch = await bcrypt.compare(password, hashToCompare);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if (!user || !isMatch) {
       return NextResponse.json(
-        { error: "Password yang Anda masukkan salah." },
+        { error: "Email/Nomor HP atau password yang Anda masukkan tidak sesuai." },
         { status: 401 }
       );
     }

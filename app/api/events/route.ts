@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdmin } from "@/lib/auth";
+import { sanitizeText, sanitizeNumber } from "@/lib/security";
 
 // Public: Get all events (active for customer, or all for admin)
 export async function GET(request: Request) {
@@ -51,11 +52,17 @@ export async function POST(request: Request) {
       broadcastNotification = true,
     } = body;
 
-    if (!title || !code) {
+    const cleanTitle = sanitizeText(title, 100);
+    const cleanCode = sanitizeText(code, 30).toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+    const cleanDescription = sanitizeText(description, 500);
+    const cleanBannerText = sanitizeText(bannerText, 250);
+    const cleanDiscount = sanitizeNumber(discountPercent, 1, 99, 20);
+    const cleanMonth = eventMonth ? sanitizeNumber(eventMonth, 1, 12, 1) : null;
+    const cleanDay = eventDay ? sanitizeNumber(eventDay, 1, 31, 1) : null;
+
+    if (!cleanTitle || !cleanCode) {
       return NextResponse.json({ error: "Judul dan Kode Event wajib diisi." }, { status: 400 });
     }
-
-    const cleanCode = code.toUpperCase().trim();
 
     // Check duplicate code
     const existing = await prisma.promoEvent.findUnique({
@@ -70,13 +77,13 @@ export async function POST(request: Request) {
 
     const event = await prisma.promoEvent.create({
       data: {
-        title: title.trim(),
+        title: cleanTitle,
         code: cleanCode,
-        description: description || `Promo Spesial ${title} BeautyCare dengan potongan hingga ${discountPercent || 20}%.`,
-        bannerText: bannerText || `🎉 Event Spesial ${title}! Diskon Ekstra ${discountPercent || 20}% untuk Semua Produk!`,
-        discountPercent: Number(discountPercent) || 20,
-        eventMonth: eventMonth ? Number(eventMonth) : null,
-        eventDay: eventDay ? Number(eventDay) : null,
+        description: cleanDescription || `Promo Spesial ${cleanTitle} BeautyCare dengan potongan hingga ${cleanDiscount}%.`,
+        bannerText: cleanBannerText || `🎉 Event Spesial ${cleanTitle}! Diskon Ekstra ${cleanDiscount}% untuk Semua Produk!`,
+        discountPercent: cleanDiscount,
+        eventMonth: cleanMonth,
+        eventDay: cleanDay,
         startDate: start,
         endDate: end,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
