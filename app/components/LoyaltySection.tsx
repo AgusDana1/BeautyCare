@@ -13,25 +13,35 @@ import {
 } from "lucide-react";
 import { formatRupiah } from "@/lib/cart";
 
-interface LoyaltyData {
-  customer: {
+interface LoyaltyCustomer {
+  id?: number;
+  phone?: string;
+  name?: string | null;
+  email?: string | null;
+  points?: number;
+  tier?: string;
+  totalSpent?: number;
+  transactions?: Array<{
     id: number;
-    phone: string;
-    name: string | null;
-    email: string | null;
-    points: number;
-    tier: "SILVER" | "GOLD" | "PLATINUM";
-    totalSpent: number;
-    transactions?: Array<{
-      id: number;
-      type: "EARN" | "REDEEM";
-      amount: number;
-      description: string;
-      createdAt: string;
-    }>;
-  };
-  discountValue: number;
-  potentialPoints: number;
+    type?: string;
+    amount?: number;
+    points?: number;
+    description: string;
+    createdAt: string;
+  }>;
+}
+
+interface LoyaltyData {
+  found?: boolean;
+  message?: string;
+  id?: number;
+  name?: string | null;
+  phone?: string;
+  points?: number;
+  tier?: string;
+  discountValue?: number;
+  potentialPoints?: number;
+  customer?: LoyaltyCustomer | null;
 }
 
 export default function LoyaltySection() {
@@ -41,9 +51,9 @@ export default function LoyaltySection() {
   const [errorMessage, setErrorMessage] = useState("");
   const [simulatedSpend, setSimulatedSpend] = useState<number>(250000);
 
-  const handleCheckLoyalty = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phoneInput.trim()) return;
+  const checkLoyaltyForNumber = async (targetPhone: string) => {
+    const trimmed = targetPhone.trim();
+    if (!trimmed) return;
 
     setLoading(true);
     setErrorMessage("");
@@ -51,11 +61,18 @@ export default function LoyaltySection() {
 
     try {
       const res = await fetch(
-        `/api/loyalty?phone=${encodeURIComponent(phoneInput.trim())}`
+        `/api/loyalty?phone=${encodeURIComponent(trimmed)}`
       );
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Gagal mengambil data loyalty.");
+      }
+      if (data.found === false) {
+        setErrorMessage(
+          data.message || "Nomor belum terdaftar di program loyalty."
+        );
+        setLoyaltyData(null);
+        return;
       }
       setLoyaltyData(data);
     } catch (err: unknown) {
@@ -64,13 +81,38 @@ export default function LoyaltySection() {
           ? err.message
           : "Nomor belum terdaftar atau terjadi kesalahan."
       );
+      setLoyaltyData(null);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCheckLoyalty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await checkLoyaltyForNumber(phoneInput);
+  };
+
+  const handleDemoClick = (demoNum: string) => {
+    setPhoneInput(demoNum);
+    checkLoyaltyForNumber(demoNum);
+  };
+
   const simulatedPoints = Math.floor(simulatedSpend / 1000);
   const simulatedDiscount = simulatedPoints * 100;
+
+  const customerName =
+    loyaltyData?.customer?.name || loyaltyData?.name || "Pelanggan Setia";
+  const customerPhone =
+    loyaltyData?.customer?.phone || loyaltyData?.phone || phoneInput;
+  const customerTier = (
+    loyaltyData?.customer?.tier ||
+    loyaltyData?.tier ||
+    "SILVER"
+  ).toUpperCase();
+  const customerPoints =
+    loyaltyData?.customer?.points ?? loyaltyData?.points ?? 0;
+  const discountValue =
+    loyaltyData?.discountValue ?? customerPoints * 100;
 
   return (
     <section id="loyalty" className="py-8 sm:py-20 bg-gradient-to-b from-[#faf7f5] via-rose-50/40 to-[#faf7f5]">
@@ -249,16 +291,16 @@ export default function LoyaltySection() {
               <span>💡 Coba demo nomor:</span>
               <button
                 type="button"
-                onClick={() => setPhoneInput("081234567890")}
-                className="text-rose-600 underline hover:text-rose-700"
+                onClick={() => handleDemoClick("081234567890")}
+                className="text-rose-600 underline hover:text-rose-700 cursor-pointer font-medium"
               >
                 081234567890 (350 Poin)
               </button>
               <span>atau</span>
               <button
                 type="button"
-                onClick={() => setPhoneInput("089876543210")}
-                className="text-rose-600 underline hover:text-rose-700"
+                onClick={() => handleDemoClick("089876543210")}
+                className="text-rose-600 underline hover:text-rose-700 cursor-pointer font-medium"
               >
                 089876543210 (1250 Poin)
               </button>
@@ -278,23 +320,23 @@ export default function LoyaltySection() {
                       Member BeautyCare
                     </span>
                     <h4 className="font-black text-sm sm:text-base text-stone-900">
-                      {loyaltyData.customer.name || "Pelanggan Setia"}
+                      {customerName}
                     </h4>
                     <span className="text-xs text-stone-500">
-                      {loyaltyData.customer.phone}
+                      {customerPhone}
                     </span>
                   </div>
 
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs ${
-                      loyaltyData.customer.tier === "PLATINUM"
+                      customerTier === "PLATINUM"
                         ? "bg-purple-100 text-purple-900 border border-purple-200"
-                        : loyaltyData.customer.tier === "GOLD"
+                        : customerTier === "GOLD"
                         ? "bg-amber-100 text-amber-900 border border-amber-200"
                         : "bg-stone-100 text-stone-800 border border-stone-200"
                     }`}
                   >
-                    Tier: {loyaltyData.customer.tier}
+                    Tier: {customerTier}
                   </span>
                 </div>
 
@@ -304,7 +346,7 @@ export default function LoyaltySection() {
                       Saldo Poin Aktif
                     </span>
                     <span className="text-xl sm:text-2xl font-black text-rose-600 font-mono">
-                      {loyaltyData.customer.points} Pts
+                      {customerPoints} Pts
                     </span>
                   </div>
                   <div className="p-3 rounded-xl bg-white border border-rose-100 shadow-2xs">
@@ -312,7 +354,7 @@ export default function LoyaltySection() {
                       Nilai Potongan Harga
                     </span>
                     <span className="text-xl sm:text-2xl font-black text-emerald-600 font-mono">
-                      {formatRupiah(loyaltyData.discountValue)}
+                      {formatRupiah(discountValue)}
                     </span>
                   </div>
                 </div>

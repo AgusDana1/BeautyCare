@@ -73,11 +73,8 @@ export default function CartDrawer({
     try {
       const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(clean)}`);
       const data = await res.json();
-      if (data?.customer?.points) {
-        setLoyaltyPoints(data.customer.points);
-      } else {
-        setLoyaltyPoints(0);
-      }
+      const points = data?.customer?.points ?? data?.points ?? 0;
+      setLoyaltyPoints(points);
     } catch {
       setLoyaltyPoints(null);
     } finally {

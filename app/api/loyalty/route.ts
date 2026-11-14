@@ -46,6 +46,8 @@ export async function GET(request: Request) {
         points: 0,
         tier: "MEMBER BARU",
         discountValue: 0,
+        potentialPoints: 0,
+        customer: null,
         message:
           "Nomor belum terdaftar di program loyalty. Poin akan otomatis mulai terkumpul pada pesanan pertama Anda!",
       });
@@ -54,13 +56,33 @@ export async function GET(request: Request) {
     // 1 poin bernilai Rp 100 potongan harga
     const discountValue = member.points * 100;
 
+    const customer = {
+      id: member.id,
+      phone: member.phone,
+      name: maskName(member.name),
+      email: member.email,
+      points: member.points,
+      tier: member.tier,
+      totalSpent: Number(member.totalSpent || 0),
+      transactions: member.history.map((h) => ({
+        id: h.id,
+        points: h.points,
+        type: h.type,
+        description: h.description,
+        createdAt: h.createdAt.toISOString(),
+      })),
+    };
+
     return NextResponse.json({
       found: true,
+      // Direct root fields
       id: member.id,
-      name: maskName(member.name),
+      name: customer.name,
+      phone: member.phone,
       points: member.points,
       tier: member.tier,
       discountValue,
+      potentialPoints: Math.floor(discountValue / 100),
       history: member.history.map((h) => ({
         id: h.id,
         points: h.points,
@@ -68,6 +90,8 @@ export async function GET(request: Request) {
         description: h.description,
         createdAt: h.createdAt.toISOString(),
       })),
+      // Nested customer object
+      customer,
     });
   } catch (error) {
     console.error("Failed to query loyalty points:", error);
