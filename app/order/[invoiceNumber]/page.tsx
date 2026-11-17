@@ -43,7 +43,8 @@ async function OrderConfirmationContent({
     discountAmount: Number(order.discountAmount || 0),
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
-    items: order.items.map((item) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    items: (order.items || []).map((item: any) => ({
       ...item,
       price: Number(item.price),
       subtotal: Number(item.subtotal),

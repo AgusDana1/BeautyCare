@@ -77,26 +77,31 @@ async function ProductContent({
   const sanitizedProduct = {
     ...product,
     price: Number(product.price),
-    variants: product.variants.map((v) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variants: (product.variants || []).map((v: any) => ({
       ...v,
       price: Number(v.price),
     })),
-    reviews: product.reviews.map((r) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reviews: (product.reviews || []).map((r: any) => ({
       ...r,
-      createdAt: r.createdAt.toISOString(),
+      createdAt: typeof r.createdAt === "string" ? r.createdAt : r.createdAt.toISOString(),
     })),
   };
 
-  const sanitizedRelated = relatedProducts.map((p) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sanitizedRelated = relatedProducts.map((p: any) => ({
     ...p,
     price: Number(p.price),
-    variants: p.variants.map((v) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variants: (p.variants || []).map((v: any) => ({
       ...v,
       price: Number(v.price),
     })),
-    reviews: p.reviews.map((r) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reviews: (p.reviews || []).map((r: any) => ({
       ...r,
-      createdAt: r.createdAt.toISOString(),
+      createdAt: typeof r.createdAt === "string" ? r.createdAt : r.createdAt.toISOString(),
     })),
   }));
 

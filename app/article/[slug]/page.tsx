@@ -62,16 +62,19 @@ async function ArticleContent({
     take: 3,
   });
 
-  const sanitizedProducts = products.map((p) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sanitizedProducts = products.map((p: any) => ({
     ...p,
     price: Number(p.price),
-    variants: p.variants.map((v) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variants: (p.variants || []).map((v: any) => ({
       ...v,
       price: Number(v.price),
     })),
-    reviews: p.reviews.map((r) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reviews: (p.reviews || []).map((r: any) => ({
       ...r,
-      createdAt: r.createdAt.toISOString(),
+      createdAt: typeof r.createdAt === "string" ? r.createdAt : r.createdAt.toISOString(),
     })),
   }));
 

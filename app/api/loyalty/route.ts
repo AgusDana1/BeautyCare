@@ -64,13 +64,15 @@ export async function GET(request: Request) {
       points: member.points,
       tier: member.tier,
       totalSpent: Number(member.totalSpent || 0),
-      transactions: member.history.map((h) => ({
-        id: h.id,
-        points: h.points,
-        type: h.type,
-        description: h.description,
-        createdAt: h.createdAt.toISOString(),
-      })),
+      transactions: member.history.map(
+        (h: { id: number; points: number; type: string; description: string; createdAt: Date }) => ({
+          id: h.id,
+          points: h.points,
+          type: h.type,
+          description: h.description,
+          createdAt: h.createdAt.toISOString(),
+        })
+      ),
     };
 
     return NextResponse.json({
@@ -83,13 +85,15 @@ export async function GET(request: Request) {
       tier: member.tier,
       discountValue,
       potentialPoints: Math.floor(discountValue / 100),
-      history: member.history.map((h) => ({
-        id: h.id,
-        points: h.points,
-        type: h.type,
-        description: h.description,
-        createdAt: h.createdAt.toISOString(),
-      })),
+      history: member.history.map(
+        (h: { id: number; points: number; type: string; description: string; createdAt: Date }) => ({
+          id: h.id,
+          points: h.points,
+          type: h.type,
+          description: h.description,
+          createdAt: h.createdAt.toISOString(),
+        })
+      ),
       // Nested customer object
       customer,
     });

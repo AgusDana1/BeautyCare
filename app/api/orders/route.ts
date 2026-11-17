@@ -170,7 +170,9 @@ export async function POST(request: Request) {
 
       if (product.hasVariants && item.variantId) {
         const vId = parseInt(item.variantId, 10);
-        const variant = product.variants.find((v) => v.id === vId);
+        const variant = product.variants.find(
+          (v: { id: number; size: string; stock: number; price: unknown }) => v.id === vId
+        );
         if (!variant) {
           return NextResponse.json(
             { error: `Varian ukuran tidak ditemukan untuk produk ${product.name}` },

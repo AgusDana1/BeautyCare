@@ -82,7 +82,9 @@ export async function GET() {
       take: 15,
     });
 
-    const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
+    const unreadNotificationsCount = notifications.filter(
+      (n: { isRead: boolean }) => !n.isRead
+    ).length;
 
     return NextResponse.json({
       authenticated: true,

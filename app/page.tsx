@@ -27,22 +27,26 @@ async function HomeContent() {
   ]);
 
   // Sanitize decimals & dates for client
-  const sanitizedProducts = products.map((p) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sanitizedProducts = products.map((p: any) => ({
     ...p,
     price: Number(p.price),
-    variants: p.variants.map((v) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variants: (p.variants || []).map((v: any) => ({
       ...v,
       price: Number(v.price),
     })),
-    reviews: p.reviews.map((r) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reviews: (p.reviews || []).map((r: any) => ({
       ...r,
-      createdAt: r.createdAt.toISOString(),
+      createdAt: typeof r.createdAt === "string" ? r.createdAt : r.createdAt.toISOString(),
     })),
   }));
 
-  const sanitizedArticles = articles.map((a) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sanitizedArticles = articles.map((a: any) => ({
     ...a,
-    publishedAt: a.publishedAt.toISOString(),
+    publishedAt: typeof a.publishedAt === "string" ? a.publishedAt : a.publishedAt.toISOString(),
   }));
 
   return (

@@ -46,7 +46,10 @@ export async function PATCH(
       const allVariants = await prisma.productVariant.findMany({
         where: { productId },
       });
-      const totalStock = allVariants.reduce((sum, v) => sum + v.stock, 0);
+      const totalStock = allVariants.reduce(
+        (sum: number, v: { stock: number }) => sum + v.stock,
+        0
+      );
 
       await prisma.product.update({
         where: { id: productId },
