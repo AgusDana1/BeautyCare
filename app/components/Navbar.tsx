@@ -329,82 +329,104 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           </div>
         </div>
 
-        {/* Mobile Slide-Over Menu */}
+        {/* Mobile Slide-Down Menu with Backdrop Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-[#FAF8F4] border-b border-[#EAE4DA] px-6 py-6 space-y-6 animate-fade-in shadow-editorial">
-            {/* Mobile Navigation Links */}
-            <div className="flex flex-col space-y-4 text-sm font-medium tracking-widest uppercase text-[#292925]">
-              <Link
-                href="/#katalog"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
-              >
-                Koleksi Produk
-              </Link>
-              <Link
-                href="/#concerns"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
-              >
-                Kebutuhan Kulit
-              </Link>
-              <Link
-                href="/#philosophy"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
-              >
-                Filosofi Kami
-              </Link>
-              <Link
-                href="/#ritual"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
-              >
-                Panduan Rutinitas
-              </Link>
-              <Link
-                href="/#loyalty"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
-              >
-                Keanggotaan &amp; Reward
-              </Link>
-            </div>
-
-            {/* Mobile Auth Area */}
-            <div className="pt-2">
-              {customer ? (
-                <div className="p-4 bg-[#F5F1EB] border border-[#EAE4DA] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-serif text-base font-medium text-[#292925]">{customer.name}</p>
-                      <p className="text-xs text-[#57564F]">{customer.email}</p>
-                    </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#87947B] text-white rounded">
-                      {customer.loyaltyPoints || 0} Poin
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left text-xs font-medium text-[#C99A91] hover:underline"
-                  >
-                    Keluar Akun
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setAuthMode("login");
-                    setIsAuthModalOpen(true);
-                  }}
-                  className="w-full py-3 bg-[#292925] text-white text-xs tracking-widest uppercase font-medium text-center hover:bg-[#1A1A18] transition"
+          <>
+            {/* Backdrop overlay to close menu and avoid clashing */}
+            <div
+              className="fixed inset-0 top-16 sm:top-20 bg-black/40 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            {/* Slide-down Menu Panel with independent scroll */}
+            <div className="absolute top-full left-0 right-0 max-h-[calc(100dvh-4.5rem)] overflow-y-auto bg-[#FAF8F4] border-b border-[#EAE4DA] px-5 py-6 space-y-6 shadow-2xl z-50 lg:hidden animate-fade-in">
+              {/* Mobile Navigation Links */}
+              <div className="flex flex-col space-y-3.5 text-xs sm:text-sm font-medium tracking-widest uppercase text-[#292925]">
+                <Link
+                  href="/#katalog"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
                 >
-                  Masuk atau Daftar Akun
-                </button>
-              )}
+                  <span>Koleksi Produk</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+                <Link
+                  href="/#concerns"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
+                >
+                  <span>Kebutuhan Kulit</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+                <Link
+                  href="/#philosophy"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
+                >
+                  <span>Filosofi Kami</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+                <Link
+                  href="/#ritual"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
+                >
+                  <span>Panduan Rutinitas</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+                <Link
+                  href="/#loyalty"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
+                >
+                  <span>Keanggotaan &amp; Reward</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+                <Link
+                  href="/#edukasi"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-[#87947B] transition-colors py-2 border-b border-[#EAE4DA] flex items-center justify-between"
+                >
+                  <span>The Clinical Journal</span>
+                  <span className="text-[#87947B] text-xs">→</span>
+                </Link>
+              </div>
+
+              {/* Mobile Auth Area */}
+              <div className="pt-2">
+                {customer ? (
+                  <div className="p-4 bg-[#F5F1EB] border border-[#EAE4DA] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-serif text-base font-medium text-[#292925]">{customer.name}</p>
+                        <p className="text-xs text-[#57564F]">{customer.email}</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 bg-[#87947B] text-white rounded">
+                        {customer.loyaltyPoints || 0} Poin
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left text-xs font-medium text-[#C99A91] hover:underline cursor-pointer"
+                    >
+                      Keluar Akun
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setAuthMode("login");
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="w-full py-3 bg-[#292925] text-white text-xs tracking-widest uppercase font-medium text-center hover:bg-[#87947B] transition cursor-pointer"
+                  >
+                    Masuk atau Daftar Akun
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 

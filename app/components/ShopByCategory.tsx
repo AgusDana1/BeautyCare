@@ -62,7 +62,7 @@ export default function ShopByCategory({
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {categories.slice(0, 4).map((cat) => {
             const isSelected = selectedCategory === cat.slug;
             const image =
@@ -91,14 +91,14 @@ export default function ShopByCategory({
                   <div className="absolute inset-0 bg-gradient-to-t from-[#292925]/50 via-transparent to-transparent opacity-40 group-hover:opacity-20 transition-opacity" />
                 </div>
 
-                <div className="p-4 sm:p-5 bg-white space-y-1.5">
-                  <h3 className="font-serif text-base sm:text-lg text-[#292925] group-hover:text-[#87947B] transition-colors">
+                <div className="p-3 sm:p-5 bg-white space-y-1 sm:space-y-1.5">
+                  <h3 className="font-serif text-sm sm:text-base lg:text-lg text-[#292925] group-hover:text-[#87947B] transition-colors truncate">
                     {cat.name}
                   </h3>
-                  <p className="text-[11px] text-[#292925]/65 line-clamp-1 font-sans">
+                  <p className="text-[10px] sm:text-[11px] text-[#292925]/65 line-clamp-1 font-sans">
                     {tagline}
                   </p>
-                  <div className="pt-2 flex items-center gap-1 text-[11px] font-medium text-[#292925] group-hover:text-[#87947B] transition-colors">
+                  <div className="pt-1 sm:pt-2 flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-[#292925] group-hover:text-[#87947B] transition-colors">
                     <span>Eksplorasi</span>
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>

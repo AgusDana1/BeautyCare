@@ -131,9 +131,9 @@ export default function LoyaltySection() {
         </div>
 
         {/* Tiers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* SILVER GLOW */}
-          <div className="p-6 sm:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
+          <div className="p-4 sm:p-6 lg:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between text-[#87947B]">
                 <span className="text-[10px] tracking-widest uppercase font-semibold text-[#57564F]">
@@ -170,7 +170,7 @@ export default function LoyaltySection() {
           </div>
 
           {/* GOLD RADIANT */}
-          <div className="p-6 sm:p-8 bg-[#FAF8F4] border-2 border-[#87947B] flex flex-col justify-between space-y-6 relative shadow-editorial">
+          <div className="p-4 sm:p-6 lg:p-8 bg-[#FAF8F4] border-2 border-[#87947B] flex flex-col justify-between space-y-6 relative shadow-editorial">
             <div className="absolute top-0 right-0 bg-[#87947B] text-white text-[9px] tracking-widest uppercase font-semibold py-1 px-3">
               Paling Populer
             </div>
@@ -210,7 +210,7 @@ export default function LoyaltySection() {
           </div>
 
           {/* PLATINUM FLAWLESS */}
-          <div className="p-6 sm:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
+          <div className="p-4 sm:p-6 lg:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between text-[#57564F]">
                 <span className="text-[10px] tracking-widest uppercase font-semibold text-[#57564F]">
@@ -248,9 +248,9 @@ export default function LoyaltySection() {
         </div>
 
         {/* Checker & Simulator Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           {/* Live Point Checker */}
-          <div className="lg:col-span-7 bg-[#F5F1EB] border border-[#EAE4DA] p-6 sm:p-8 space-y-6">
+          <div className="lg:col-span-7 bg-[#F5F1EB] border border-[#EAE4DA] p-4 sm:p-8 space-y-5 sm:space-y-6">
             <div>
               <div className="flex items-center gap-2 text-[#87947B] text-[11px] font-semibold uppercase tracking-wider mb-1">
                 <Search className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export default function LoyaltySection() {
               </p>
             </div>
 
-            <form onSubmit={handleCheckLoyalty} className="flex gap-2">
+            <form onSubmit={handleCheckLoyalty} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="tel"
                 placeholder="Contoh: 081234567890"
@@ -276,7 +276,7 @@ export default function LoyaltySection() {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-5 py-2.5 bg-[#292925] hover:bg-[#1A1A18] text-white text-xs tracking-wider uppercase font-medium transition cursor-pointer disabled:opacity-50 shrink-0"
+                className="w-full sm:w-auto px-5 py-2.5 bg-[#292925] hover:bg-[#87947B] text-white text-xs tracking-wider uppercase font-medium transition cursor-pointer disabled:opacity-50 shrink-0"
               >
                 {loading ? "Memeriksa..." : "Cek Poin"}
               </button>

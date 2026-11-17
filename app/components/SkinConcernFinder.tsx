@@ -97,31 +97,31 @@ export default function SkinConcernFinder({
           </p>
         </div>
 
-        {/* Concern Selector Tabs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Concern Selector Tabs: 2x2 grid on mobile, 4 columns on desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {CONCERNS.map((c) => {
             const isSelected = c.id === activeConcernId;
             return (
               <button
                 key={c.id}
                 onClick={() => setActiveConcernId(c.id)}
-                className={`p-4 sm:p-5 text-left border transition cursor-pointer flex flex-col justify-between ${
+                className={`p-3 sm:p-5 text-left border transition cursor-pointer flex flex-col justify-between ${
                   isSelected
                     ? "bg-[#FAF8F4] border-[#292925] shadow-editorial"
                     : "bg-[#FAF8F4]/60 border-[#EAE4DA] hover:border-[#87947B] hover:bg-[#FAF8F4]"
                 }`}
               >
                 <div>
-                  <h3 className="font-serif text-base sm:text-lg font-medium text-[#292925] leading-snug">
+                  <h3 className="font-serif text-xs sm:text-base lg:text-lg font-medium text-[#292925] leading-snug line-clamp-2">
                     {c.title}
                   </h3>
-                  <p className="text-xs text-[#57564F] mt-1 font-light">
+                  <p className="hidden sm:block text-xs text-[#57564F] mt-1 font-light">
                     {c.subtitle}
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-[#EAE4DA] flex items-center justify-between text-[11px]">
+                <div className="mt-2.5 sm:mt-4 pt-2 sm:pt-3 border-t border-[#EAE4DA] flex items-center justify-between text-[10px] sm:text-[11px]">
                   <span className={isSelected ? "font-semibold text-[#87947B]" : "text-[#57564F]"}>
-                    {isSelected ? "Aktif Dipilih" : "Pilih Kategori"}
+                    {isSelected ? "Aktif" : "Pilih"}
                   </span>
                   {isSelected && <Check className="w-3.5 h-3.5 text-[#87947B]" />}
                 </div>
@@ -131,14 +131,14 @@ export default function SkinConcernFinder({
         </div>
 
         {/* Active Concern Details & Curated Recommendations */}
-        <div className="bg-[#FAF8F4] border border-[#EAE4DA] p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="bg-[#FAF8F4] border border-[#EAE4DA] p-4 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           {/* Diagnostic Note */}
           <div className="lg:col-span-5 space-y-4 sm:space-y-6">
             <div>
               <span className="text-[10px] uppercase tracking-widest text-[#87947B] font-semibold block mb-1">
                 Pendekatan Formulasi
               </span>
-              <h3 className="font-serif text-xl sm:text-2xl text-[#292925] font-normal">
+              <h3 className="font-serif text-lg sm:text-2xl text-[#292925] font-normal">
                 {activeConcern.title}
               </h3>
             </div>
@@ -148,14 +148,14 @@ export default function SkinConcernFinder({
             </p>
 
             <div className="pt-2">
-              <span className="text-[11px] uppercase tracking-wider text-[#292925] font-semibold block mb-2">
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#292925] font-semibold block mb-2">
                 Bahan Aktif Kunci:
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {activeConcern.keyIngredients.map((ing) => (
                   <span
                     key={ing}
-                    className="text-xs py-1 px-2.5 bg-[#F5F1EB] border border-[#EAE4DA] text-[#57564F]"
+                    className="text-[11px] sm:text-xs py-0.5 sm:py-1 px-2 sm:px-2.5 bg-[#F5F1EB] border border-[#EAE4DA] text-[#57564F]"
                   >
                     {ing}
                   </span>
@@ -163,11 +163,11 @@ export default function SkinConcernFinder({
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1 sm:pt-2">
               <a
                 href="#katalog"
                 onClick={() => onSelectCategory && onSelectCategory(activeConcern.categorySlug)}
-                className="inline-flex items-center gap-2 text-xs uppercase tracking-wider font-medium text-[#292925] hover:text-[#87947B] underline underline-offset-4 decoration-[#EAE4DA] hover:decoration-[#87947B] transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 sm:gap-2 text-xs uppercase tracking-wider font-medium text-[#292925] hover:text-[#87947B] underline underline-offset-4 decoration-[#EAE4DA] hover:decoration-[#87947B] transition cursor-pointer"
               >
                 <span>Lihat Seluruh Produk Kategori Ini</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -177,16 +177,16 @@ export default function SkinConcernFinder({
 
           {/* Curated Product Cards */}
           <div className="lg:col-span-7">
-            <span className="text-[11px] uppercase tracking-widest text-[#57564F] font-semibold block mb-3">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-widest text-[#57564F] font-semibold block mb-3">
               Rekomendasi Terarah:
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
               {recommendedProducts.map((prod) => (
                 <div
                   key={prod.id}
-                  className="bg-[#FAF8F4] border border-[#EAE4DA] p-3 flex flex-col justify-between"
+                  className="bg-[#FAF8F4] border border-[#EAE4DA] p-2.5 sm:p-3 flex sm:flex-col justify-between items-center sm:items-stretch gap-3 sm:gap-0"
                 >
-                  <div className="aspect-square bg-[#F5F1EB] overflow-hidden mb-3">
+                  <div className="aspect-square w-16 h-16 sm:w-full sm:h-auto bg-[#F5F1EB] overflow-hidden sm:mb-3 shrink-0">
                     {prod.image ? (
                       <img
                         src={prod.image}
@@ -194,22 +194,22 @@ export default function SkinConcernFinder({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center font-serif text-[#57564F]/50">
+                      <div className="w-full h-full flex items-center justify-center font-serif text-[#57564F]/50 text-xs">
                         BeautyCare
                       </div>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <h4 className="font-serif text-sm font-medium text-[#292925] line-clamp-1">
+                  <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
+                    <h4 className="font-serif text-xs sm:text-sm font-medium text-[#292925] truncate">
                       {prod.name}
                     </h4>
-                    <span className="text-xs text-[#57564F] block">
+                    <span className="text-[11px] sm:text-xs text-[#57564F] block">
                       Rp {prod.price.toLocaleString("id-ID")}
                     </span>
                   </div>
                   <button
                     onClick={() => onOpenOrderModal(prod)}
-                    className="mt-3 w-full py-1.5 text-center text-[11px] tracking-wider uppercase font-medium bg-[#292925] text-white hover:bg-[#1A1A18] transition cursor-pointer"
+                    className="mt-0 sm:mt-3 px-3 py-1.5 sm:w-full text-center text-[10px] sm:text-[11px] tracking-wider uppercase font-medium bg-[#292925] text-white hover:bg-[#87947B] transition cursor-pointer shrink-0"
                   >
                     Pesan
                   </button>

@@ -49,20 +49,20 @@ export default function HeroSlider({
     >
       <div className="relative border border-[#EAE4DA] bg-[#F5F1EB] overflow-hidden">
         {/* Editorial Split / Layered Hero */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px] sm:min-h-[520px] lg:min-h-[580px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-0 sm:min-h-[460px] lg:min-h-[560px]">
           {/* Left Column: Editorial Narrative & Action */}
-          <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-14 z-10 bg-[#FAF8F4]/90 lg:bg-[#FAF8F4]/80 backdrop-blur-xs">
-            <div className="space-y-4 sm:space-y-6">
+          <div className="lg:col-span-6 flex flex-col justify-between p-5 sm:p-8 lg:p-14 z-10 bg-[#FAF8F4]/90 lg:bg-[#FAF8F4]/80 backdrop-blur-xs">
+            <div className="space-y-3 sm:space-y-6">
               {/* Subtle Botanical Badge */}
               <div className="flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#87947B]" />
-                <span className="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-[#87947B] font-semibold">
+                <span className="text-[10px] sm:text-xs tracking-[0.18em] uppercase text-[#87947B] font-semibold">
                   {active.badge}
                 </span>
               </div>
 
               {/* Editorial Headline */}
-              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#292925] font-normal leading-[1.18] transition-all">
+              <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl tracking-tight text-[#292925] font-normal leading-[1.18] transition-all">
                 {active.title}
               </h1>
 
@@ -72,7 +72,7 @@ export default function HeroSlider({
               </p>
 
               {/* Action Buttons */}
-              <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
+              <div className="pt-1 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
                 <a
                   href="#katalog"
                   onClick={() => {
@@ -80,7 +80,7 @@ export default function HeroSlider({
                       onSelectCategory(active.targetCategory);
                     }
                   }}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#292925] text-white text-xs tracking-[0.14em] uppercase font-medium hover:bg-[#1A1A18] transition cursor-pointer"
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#292925] text-white text-xs tracking-[0.14em] uppercase font-medium hover:bg-[#87947B] transition cursor-pointer"
                 >
                   <span>{active.primaryCta}</span>
                   <ArrowRight className="w-3.5 h-3.5 stroke-[1.75]" />
@@ -88,7 +88,7 @@ export default function HeroSlider({
 
                 <a
                   href="#concerns"
-                  className="inline-flex items-center gap-1.5 text-xs tracking-[0.12em] uppercase font-medium text-[#292925] hover:text-[#87947B] transition py-3 underline underline-offset-4 decoration-[#EAE4DA] hover:decoration-[#87947B]"
+                  className="inline-flex items-center gap-1.5 text-xs tracking-[0.12em] uppercase font-medium text-[#292925] hover:text-[#87947B] transition py-2 sm:py-3 underline underline-offset-4 decoration-[#EAE4DA] hover:decoration-[#87947B]"
                 >
                   <span>Konsultasi Kebutuhan</span>
                 </a>
@@ -96,14 +96,14 @@ export default function HeroSlider({
             </div>
 
             {/* Bottom Meta & Credentials */}
-            <div className="pt-6 sm:pt-10 border-t border-[#EAE4DA] mt-6 flex items-center justify-between text-[11px] sm:text-xs text-[#57564F]">
+            <div className="pt-4 sm:pt-10 border-t border-[#EAE4DA] mt-5 sm:mt-6 flex items-center justify-between text-[11px] sm:text-xs text-[#57564F]">
               <div className="flex flex-col">
                 <span className="font-medium text-[#292925]">{active.statBadge}</span>
                 <span className="text-[10px] text-[#87947B]">{active.statSub}</span>
               </div>
 
               {/* Slide Counter: e.g. 01 / 04 */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <span className="font-mono text-xs tracking-wider text-[#292925]">
                   0{currentSlide + 1} / 0{slides.length}
                 </span>
@@ -111,14 +111,14 @@ export default function HeroSlider({
                   <button
                     onClick={onPrev}
                     aria-label="Slide Sebelumnya"
-                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition"
+                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition cursor-pointer"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={onNext}
                     aria-label="Slide Berikutnya"
-                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition"
+                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition cursor-pointer"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -128,7 +128,7 @@ export default function HeroSlider({
           </div>
 
           {/* Right Column: Authentic Editorial Product Imagery */}
-          <div className="lg:col-span-6 relative aspect-[4/3] lg:aspect-auto overflow-hidden bg-[#EAE4DA]">
+          <div className="lg:col-span-6 relative aspect-[16/11] sm:aspect-[16/9] lg:aspect-auto overflow-hidden bg-[#EAE4DA]">
             {slides.map((slide, idx) => {
               const isCurrent = idx === currentSlide;
               return (

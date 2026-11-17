@@ -2,12 +2,12 @@ import { ShieldCheck, Leaf, Sparkles, Droplets } from "lucide-react";
 
 export default function BrandStory() {
   return (
-    <section id="philosophy" className="w-full bg-[#FAF8F4] py-16 sm:py-24 border-b border-[#EAE4DA]">
+    <section id="philosophy" className="w-full bg-[#FAF8F4] py-12 sm:py-20 lg:py-24 border-b border-[#EAE4DA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
           {/* Left Column: Authentic Photography */}
           <div className="lg:col-span-5 relative">
-            <div className="aspect-[4/5] bg-[#F5F1EB] border border-[#EAE4DA] overflow-hidden">
+            <div className="aspect-[16/11] sm:aspect-[4/5] bg-[#F5F1EB] border border-[#EAE4DA] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1000&auto=format&fit=crop&q=80"
                 alt="Filosofi Bahan Baku BeautyCare"
@@ -30,12 +30,12 @@ export default function BrandStory() {
               <span className="text-[11px] font-semibold tracking-[0.2em] text-[#87947B] uppercase block">
                 Filosofi Kami
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#292925] font-normal tracking-tight leading-[1.15]">
+              <h2 className="font-serif text-2xl sm:text-4xl lg:text-5xl text-[#292925] font-normal tracking-tight leading-[1.15]">
                 Integritas botani dipadukan dengan ketelitian dermatologis
               </h2>
             </div>
 
-            <div className="space-y-4 text-xs sm:text-sm lg:text-[15px] text-[#57564F] leading-relaxed font-light">
+            <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm lg:text-[15px] text-[#57564F] leading-relaxed font-light">
               <p>
                 Kami memandang perawatan kulit bukan sebagai janji instan, melainkan sebagai komitmen mindful terhadap kesehatan jangka panjang skin barrier Anda.
               </p>
@@ -45,7 +45,7 @@ export default function BrandStory() {
             </div>
 
             {/* Credential Pillars */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-[#EAE4DA]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 border-t border-[#EAE4DA]">
               <div className="space-y-1">
                 <ShieldCheck className="w-4 h-4 text-[#87947B]" />
                 <h4 className="text-xs font-semibold text-[#292925] font-serif">BPOM Resmi</h4>

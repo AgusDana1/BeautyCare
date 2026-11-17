@@ -23,8 +23,8 @@ export default function Footer({
   onSelectCategory = () => {},
 }: FooterProps) {
   return (
-    <footer className="bg-[#21211E] text-[#FAF8F4]/70 pt-16 sm:pt-20 pb-10 px-4 sm:px-6 lg:px-8 border-t border-[#33332D]">
-      <div className="max-w-7xl mx-auto space-y-14">
+    <footer className="bg-[#21211E] text-[#FAF8F4]/70 pt-12 sm:pt-20 pb-8 sm:pb-10 px-4 sm:px-6 lg:px-8 border-t border-[#33332D]">
+      <div className="max-w-7xl mx-auto space-y-10 sm:space-y-14">
         {/* Main Columns Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           {/* Col 1: Brand Ethos & Atelier Contact */}
@@ -158,11 +158,11 @@ export default function Footer({
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[#33332D] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#FAF8F4]/50 font-sans">
-          <p className="text-center sm:text-left">
+        <div className="pt-6 sm:pt-8 border-t border-[#33332D] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#FAF8F4]/50 font-sans">
+          <p className="text-center sm:text-left text-[11px] sm:text-xs">
             © 2026 BeautyCare Indonesia. Seluruh hak cipta dilindungi undang-undang.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-[11px] sm:text-xs">
             <a href="#faq" className="hover:text-[#FAF8F4] transition-colors">FAQ &amp; Bantuan</a>
             <span className="hover:text-[#FAF8F4] transition-colors cursor-pointer">Kebijakan Privasi</span>
             <span className="hover:text-[#FAF8F4] transition-colors cursor-pointer">Syarat &amp; Ketentuan</span>

@@ -72,8 +72,8 @@ export default function ProductCard({
       </Link>
 
       {/* Product Metadata & Actions */}
-      <div className="p-3.5 sm:p-5 flex flex-col flex-1 justify-between space-y-3 sm:space-y-4">
-        <div className="space-y-1.5 sm:space-y-2">
+      <div className="p-3 sm:p-5 flex flex-col flex-1 justify-between space-y-2.5 sm:space-y-4">
+        <div className="space-y-1 sm:space-y-2">
           {/* Review Star Snippet */}
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-[#57564F]">
             <Star className="w-3 h-3 fill-[#87947B] text-[#87947B] shrink-0" />
@@ -83,7 +83,7 @@ export default function ProductCard({
 
           {/* Product Title */}
           <Link href={`/product/${product.slug}`} className="block">
-            <h3 className="font-serif text-base sm:text-lg text-[#292925] group-hover:text-[#87947B] transition-colors leading-snug line-clamp-1 font-medium">
+            <h3 className="font-serif text-sm sm:text-lg text-[#292925] group-hover:text-[#87947B] transition-colors leading-snug line-clamp-1 font-medium">
               {product.name}
             </h3>
           </Link>
@@ -94,23 +94,23 @@ export default function ProductCard({
           </p>
 
           {/* Available Sizes / Variants */}
-          <div className="pt-1">
+          <div className="pt-0.5 sm:pt-1">
             {hasVariants ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] text-[#57564F] tracking-wider uppercase font-medium">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                <span className="text-[9px] sm:text-[10px] text-[#57564F] tracking-wider uppercase font-medium">
                   Ukuran:
                 </span>
                 {product.variants.map((v: { id: number; size: string }) => (
                   <span
                     key={v.id}
-                    className="text-[10px] tracking-wider px-1.5 py-0.5 bg-[#F5F1EB] text-[#292925] border border-[#EAE4DA]"
+                    className="text-[9px] sm:text-[10px] tracking-wider px-1.5 py-0.5 bg-[#F5F1EB] text-[#292925] border border-[#EAE4DA]"
                   >
                     {v.size}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="text-[10px] tracking-wider uppercase text-[#57564F]/70">
+              <span className="text-[9px] sm:text-[10px] tracking-wider uppercase text-[#57564F]/70">
                 Ukuran Standar
               </span>
             )}
@@ -118,22 +118,22 @@ export default function ProductCard({
         </div>
 
         {/* Pricing and Action Triggers */}
-        <div className="pt-3 border-t border-[#EAE4DA] flex items-center justify-between gap-2">
-          <div>
+        <div className="pt-2.5 sm:pt-3 border-t border-[#EAE4DA] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="min-w-0">
             <span className="text-[9px] uppercase tracking-widest text-[#57564F] block">
               {hasVariants ? "Mulai" : "Harga"}
             </span>
-            <span className="font-serif text-sm sm:text-base text-[#292925] font-medium">
+            <span className="font-serif text-xs sm:text-base text-[#292925] font-medium truncate block">
               Rp {minPrice.toLocaleString("id-ID")}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             {/* Quick Add To Bag */}
             <button
               onClick={() => onAddToCart(product, null, 1)}
               disabled={product.stock === 0}
-              className="p-2 border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-1.5 sm:p-2 border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
               title="Tambah ke Kantong"
               aria-label="Tambah ke Kantong"
             >
@@ -144,7 +144,7 @@ export default function ProductCard({
             <button
               onClick={() => onOpenOrderModal(product)}
               disabled={product.stock === 0}
-              className="px-3 sm:px-3.5 py-1.5 bg-[#292925] hover:bg-[#1A1A18] text-white text-[11px] tracking-wider uppercase font-medium transition cursor-pointer flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 bg-[#292925] hover:bg-[#1A1A18] text-white text-[10px] sm:text-[11px] tracking-wider uppercase font-medium transition cursor-pointer flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <span>Pesan</span>
               <ArrowRight className="w-3 h-3 stroke-[1.75]" />

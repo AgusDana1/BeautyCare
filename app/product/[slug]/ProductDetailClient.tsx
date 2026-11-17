@@ -500,7 +500,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
       </div>
 
       {/* Main Product Showcase Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 pb-24 sm:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
           {/* LEFT: Editorial Image Gallery */}
           <div className="lg:col-span-6 space-y-4">
@@ -672,7 +672,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                     {selectedVariant?.size || "Pilih satu"}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
                   {product.variants.map((v) => {
                     const isSelected = selectedVariant?.id === v.id;
                     return (
@@ -680,24 +680,24 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                         key={v.id}
                         type="button"
                         onClick={() => setSelectedVariant(v)}
-                        className={`p-3 border text-left transition-all cursor-pointer rounded-sm ${
+                        className={`p-2 sm:p-3 border text-left transition-all cursor-pointer rounded-sm ${
                           isSelected
                             ? "bg-white border-[#292925] ring-1 ring-[#292925]"
                             : "bg-[#FAF8F4] border-[#EAE4DA] hover:border-[#87947B]"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-[#292925]">
+                          <span className="font-mono text-[11px] sm:text-xs font-bold text-[#292925]">
                             {v.size}
                           </span>
                           {isSelected && (
                             <CheckCircle className="w-3.5 h-3.5 text-[#87947B]" />
                           )}
                         </div>
-                        <span className="text-xs font-serif font-semibold text-[#292925] block mt-1">
+                        <span className="text-[11px] sm:text-xs font-serif font-semibold text-[#292925] block mt-1 truncate">
                           {formatRupiah(v.price)}
                         </span>
-                        <span className="text-[10px] text-[#292925]/50 block font-sans">
+                        <span className="text-[9px] sm:text-[10px] text-[#292925]/50 block font-sans">
                           Stok: {v.stock}
                         </span>
                       </button>
@@ -1105,7 +1105,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}

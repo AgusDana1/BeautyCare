@@ -59,8 +59,8 @@ const FEATURED_REVIEWS: ReviewData[] = [
 
 export default function CustomerReviewsSection() {
   return (
-    <section className="py-16 sm:py-24 bg-[#FAF8F4] border-t border-[#EAE4DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
+    <section className="py-12 sm:py-20 lg:py-24 bg-[#FAF8F4] border-t border-[#EAE4DA]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-14">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#EAE4DA]">
           <div className="space-y-2 max-w-xl">
@@ -76,18 +76,18 @@ export default function CustomerReviewsSection() {
           </div>
 
           {/* Rating Summary Card */}
-          <div className="flex items-center gap-4 bg-white border border-[#EAE4DA] p-4 rounded-sm shrink-0">
-            <div className="text-center pr-4 border-r border-[#EAE4DA]">
-              <span className="font-serif text-3xl font-bold text-[#292925] block">4.9</span>
+          <div className="flex items-center gap-3.5 sm:gap-4 bg-white border border-[#EAE4DA] p-3.5 sm:p-4 rounded-sm shrink-0">
+            <div className="text-center pr-3.5 sm:pr-4 border-r border-[#EAE4DA]">
+              <span className="font-serif text-2xl sm:text-3xl font-bold text-[#292925] block">4.9</span>
               <div className="flex items-center gap-0.5 text-[#87947B] justify-center mt-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-[#87947B] text-[#87947B]" />
+                  <Star key={i} className="w-3 sm:w-3.5 h-3 sm:h-3.5 fill-[#87947B] text-[#87947B]" />
                 ))}
               </div>
             </div>
             <div className="text-xs font-sans space-y-0.5">
               <span className="font-medium text-[#292925] block">98% Kepuasan Pengguna</span>
-              <span className="text-[11px] text-[#292925]/60 flex items-center gap-1">
+              <span className="text-[10px] sm:text-[11px] text-[#292925]/60 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B]" />
                 Berdasarkan 500+ transaksi terverifikasi
               </span>
@@ -96,11 +96,11 @@ export default function CustomerReviewsSection() {
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
           {FEATURED_REVIEWS.map((rev) => (
             <div
               key={rev.id}
-              className="bg-white border border-[#EAE4DA] p-6 sm:p-7 flex flex-col justify-between space-y-5 rounded-sm hover:border-[#87947B]/60 transition-colors"
+              className="bg-white border border-[#EAE4DA] p-4 sm:p-7 flex flex-col justify-between space-y-4 sm:space-y-5 rounded-sm hover:border-[#87947B]/60 transition-colors"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

@@ -197,7 +197,7 @@ export default function OrderModal({
                       key={v.id}
                       type="button"
                       onClick={() => onSelectVariant(v)}
-                      className={`p-2.5 border text-left transition cursor-pointer rounded-sm ${
+                      className={`p-2 sm:p-2.5 border text-left transition cursor-pointer rounded-sm ${
                         isSelected
                           ? "bg-white border-[#292925] ring-1 ring-[#292925]"
                           : "bg-[#FAF8F4] border-[#EAE4DA] hover:border-[#87947B]"
@@ -209,9 +209,9 @@ export default function OrderModal({
                             isSelected ? "text-[#87947B]" : "text-[#292925]/40"
                           }`}
                         />
-                        <span className="font-mono font-bold text-xs text-[#292925]">{v.size}</span>
+                        <span className="font-mono font-bold text-[11px] sm:text-xs text-[#292925]">{v.size}</span>
                       </div>
-                      <span className="text-[11px] font-serif font-bold text-[#292925] block mt-1">
+                      <span className="text-[10px] sm:text-[11px] font-serif font-bold text-[#292925] block mt-1 truncate">
                         Rp {v.price.toLocaleString("id-ID")}
                       </span>
                     </button>
@@ -265,7 +265,7 @@ export default function OrderModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="block font-medium text-[#292925] mb-1">
                   No. WhatsApp <span className="text-[#87947B]">*</span>

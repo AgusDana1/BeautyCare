@@ -131,8 +131,8 @@ export default function OrderConfirmationClient({
         </div>
 
         {/* PAYMENT METHOD SECTION */}
-        <div className="bg-white p-6 sm:p-8 border border-[#EAE4DA] rounded-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-[#EAE4DA]">
+        <div className="bg-white p-5 sm:p-8 border border-[#EAE4DA] rounded-sm space-y-5 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#EAE4DA]">
             <div className="flex items-center gap-3">
               {order.paymentMethod === "QRIS" && (
                 <div className="w-9 h-9 rounded-sm bg-[#FAF8F4] text-[#87947B] border border-[#EAE4DA] flex items-center justify-center shrink-0">
@@ -159,7 +159,7 @@ export default function OrderConfirmationClient({
               </div>
             </div>
 
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <span className="font-serif text-xl sm:text-2xl font-bold text-[#292925]">
                 Rp {order.totalAmount.toLocaleString("id-ID")}
               </span>

@@ -24,8 +24,8 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-[#EAE4DA]/40 border-t border-[#EAE4DA]">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+    <section className="py-12 sm:py-20 lg:py-24 bg-[#EAE4DA]/40 border-t border-[#EAE4DA]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5 sm:space-y-6">
         <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B]">
           Newsletter
         </span>

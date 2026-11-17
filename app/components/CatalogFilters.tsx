@@ -33,7 +33,7 @@ export default function CatalogFilters({
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Editorial Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#EAE4DA] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#EAE4DA] pb-4 sm:pb-5">
         <div>
           <span className="text-[11px] font-semibold tracking-[0.2em] text-[#87947B] uppercase block mb-1">
             Koleksi Terkurasi
@@ -47,7 +47,7 @@ export default function CatalogFilters({
         </div>
 
         {/* Sort and Count */}
-        <div className="flex items-center gap-3 self-start sm:self-auto shrink-0 text-xs text-[#57564F]">
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto shrink-0 text-xs text-[#57564F]">
           <span className="font-mono text-xs text-[#87947B]">
             {totalResults} produk
           </span>
@@ -126,13 +126,13 @@ export default function CatalogFilters({
 
         {/* Size Filter Bar */}
         {allSizes.length > 0 && (
-          <div className="p-3 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-[11px] uppercase tracking-wider text-[#57564F] font-medium mr-1">
+          <div className="p-2.5 sm:p-3 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#57564F] font-medium mr-1">
               Pilihan Ukuran Botol (ml):
             </span>
             <button
               onClick={() => onSelectSizeFilter("ALL")}
-              className={`px-2.5 py-1 text-[11px] tracking-wider uppercase transition border cursor-pointer ${
+              className={`px-2.5 py-1 text-[10px] sm:text-[11px] tracking-wider uppercase transition border cursor-pointer ${
                 selectedSizeFilter === "ALL"
                   ? "bg-[#292925] text-white border-[#292925]"
                   : "bg-[#FAF8F4] text-[#57564F] border-[#EAE4DA] hover:border-[#292925]"
@@ -144,7 +144,7 @@ export default function CatalogFilters({
               <button
                 key={size}
                 onClick={() => onSelectSizeFilter(size)}
-                className={`px-2.5 py-1 text-[11px] tracking-wider uppercase transition border cursor-pointer ${
+                className={`px-2.5 py-1 text-[10px] sm:text-[11px] tracking-wider uppercase transition border cursor-pointer ${
                   selectedSizeFilter === size
                     ? "bg-[#87947B] text-white border-[#87947B]"
                     : "bg-[#FAF8F4] text-[#57564F] border-[#EAE4DA] hover:border-[#87947B]"

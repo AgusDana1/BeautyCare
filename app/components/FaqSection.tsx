@@ -73,9 +73,9 @@ export default function FaqSection() {
   };
 
   return (
-    <section id="faq" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 scroll-mt-24">
+    <section id="faq" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24 scroll-mt-24">
       {/* Header */}
-      <div className="text-center space-y-3 mb-10 sm:mb-12">
+      <div className="text-center space-y-3 mb-8 sm:mb-12">
         <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B]">
           Pertanyaan Umum
         </span>
@@ -89,7 +89,7 @@ export default function FaqSection() {
         </p>
 
         {/* Minimalist Filter Tabs */}
-        <div className="flex items-center justify-center gap-2 pt-4 overflow-x-auto scrollbar-none pb-1">
+        <div className="flex items-center justify-start sm:justify-center gap-2 pt-4 overflow-x-auto scrollbar-none pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
           {[
             { id: "all", label: "Semua Pertanyaan" },
             { id: "produk", label: "Formulasi & Ukuran ml" },
@@ -198,7 +198,7 @@ export default function FaqSection() {
       )}
 
       {/* Understated Consultation Callout */}
-      <div className="mt-12 p-6 sm:p-8 bg-[#EAE4DA]/30 border border-[#EAE4DA] flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+      <div className="mt-10 sm:mt-12 p-5 sm:p-8 bg-[#EAE4DA]/30 border border-[#EAE4DA] flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-5 text-center sm:text-left">
         <div className="space-y-1">
           <h4 className="font-serif text-base sm:text-lg text-[#292925]">
             Memerlukan Konsultasi Formulasi Khusus?
@@ -212,7 +212,7 @@ export default function FaqSection() {
           href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20konsultasi%20seputar%20formulasi%20produk"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2.5 rounded-sm bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] font-medium text-xs tracking-wider uppercase transition-colors duration-200 flex items-center gap-2 shrink-0 cursor-pointer"
+          className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-sm bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] font-medium text-xs tracking-wider uppercase transition-colors duration-200 flex items-center gap-2 shrink-0 cursor-pointer"
         >
           <MessageCircle className="w-3.5 h-3.5 text-[#87947B] group-hover:text-[#FAF8F4]" />
           <span>Hubungi Konsultan</span>

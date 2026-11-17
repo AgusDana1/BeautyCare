@@ -20,8 +20,8 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
   });
 
   return (
-    <section id="edukasi" className="py-16 sm:py-24 bg-[#FAF8F4] border-t border-[#EAE4DA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
+    <section id="edukasi" className="py-12 sm:py-20 lg:py-24 bg-[#FAF8F4] border-t border-[#EAE4DA]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-14">
         {/* Editorial Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#EAE4DA]">
           <div className="space-y-2.5 max-w-2xl">
@@ -37,7 +37,7 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
           </div>
 
           {/* Minimalist Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -56,7 +56,7 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
         </div>
 
         {/* Editorial Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
           {filteredArticles.map((art) => (
             <article
               key={art.id}
@@ -85,7 +85,7 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
                   </div>
                 </Link>
 
-                <div className="p-5 sm:p-6 space-y-3">
+                <div className="p-4 sm:p-6 space-y-2.5 sm:space-y-3">
                   <div className="flex items-center gap-2 text-[11px] text-[#292925]/60 font-sans">
                     <span className="flex items-center gap-1 font-medium text-[#292925]">
                       <UserCheck className="w-3.5 h-3.5 text-[#87947B]" />
