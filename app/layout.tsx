@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BeautyCare - Solusi Perawatan Kecantikan & Kulit Premium",
+  title: "BeautyCare — Mindful Formulations for Balanced Skin",
   description:
-    "Toko produk perawatan kecantikan, skincare, bodycare, dan perawatan kulit terbaik dengan varian ukuran lengkap.",
+    "Perawatan esensial kulit berbasis botani dan sains aktif. Teruji klinis, bersertifikasi BPOM, dan disesuaikan untuk keseimbangan barrier kulit di iklim tropis.",
 };
 
 export default function RootLayout({
@@ -14,7 +14,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="h-full antialiased scroll-smooth">
-      <body className="min-h-full flex flex-col bg-[#faf7f5] text-stone-900 font-sans">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#FAF8F4] text-[#292925] font-sans">
         {children}
       </body>
     </html>

@@ -101,7 +101,7 @@ export default function LoyaltySection() {
   const simulatedDiscount = simulatedPoints * 100;
 
   const customerName =
-    loyaltyData?.customer?.name || loyaltyData?.name || "Pelanggan Setia";
+    loyaltyData?.customer?.name || loyaltyData?.name || "Pelanggan Terhormat";
   const customerPhone =
     loyaltyData?.customer?.phone || loyaltyData?.phone || phoneInput;
   const customerTier = (
@@ -115,158 +115,153 @@ export default function LoyaltySection() {
     loyaltyData?.discountValue ?? customerPoints * 100;
 
   return (
-    <section id="loyalty" className="py-8 sm:py-20 bg-gradient-to-b from-[#faf7f5] via-rose-50/40 to-[#faf7f5]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-14">
+    <section id="loyalty" className="w-full bg-[#FAF8F4] py-16 sm:py-24 border-b border-[#EAE4DA]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/80 text-rose-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-rose-200">
-            <Gift className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
-            <span>Retensi Pembeli &amp; Reward Repurchase</span>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
-            BeautyCare Loyalty Club &amp; Sistem Poin
+        <div className="max-w-2xl mx-auto text-center space-y-3">
+          <span className="text-[11px] font-semibold tracking-[0.2em] text-[#87947B] uppercase block">
+            Hak Istimewa &amp; Poin
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#292925] font-normal tracking-tight">
+            BeautyCare Membership Club
           </h2>
-
-          <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-            Produk kecantikan adalah barang habis pakai yang dibeli berulang (repurchase).
-            Kumpulkan poin dari setiap pembelanjaan dan tukarkan langsung menjadi potongan harga nyata pada pesanan Anda berikutnya!
+          <p className="text-xs sm:text-sm text-[#57564F] leading-relaxed font-light">
+            Setiap pembelanjaan rutin Anda diapresiasi dengan poin terukur. Kumpulkan saldo poin dan tukarkan langsung sebagai potongan harga resmi pada pesanan berikutnya.
           </p>
         </div>
 
         {/* Tiers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {/* SILVER GLOW */}
-          <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-stone-200/90 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-full bg-stone-100 text-stone-700 text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                  Tier 1
+          <div className="p-6 sm:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-[#87947B]">
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-[#57564F]">
+                  Tingkat 1
                 </span>
-                <Coins className="w-5 h-5 text-stone-400" />
+                <Coins className="w-4 h-4 stroke-[1.75]" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-black text-stone-900">
+                <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#292925]">
                   Silver Glow
                 </h3>
-                <span className="text-[11px] sm:text-xs text-stone-500 font-medium">
-                  0 - 500 Poin Belanja
+                <span className="text-xs text-[#57564F] font-light">
+                  0 — 500 Poin Akumulasi
                 </span>
               </div>
-              <ul className="space-y-2 text-xs text-stone-600 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Dapatkan 1 Poin tiap Rp 1.000</span>
+              <ul className="space-y-2.5 text-xs text-[#57564F] pt-4 border-t border-[#EAE4DA]">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Dapatkan 1 Poin per transaksi Rp 1.000</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Nilai tukar: 1 Poin = Rp 100 diskon</span>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Nilai konversi: 1 Poin = Rp 100 diskon</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Akses promo kilat member</span>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Akses kurasi promo kilat member</span>
                 </li>
               </ul>
             </div>
-            <div className="pt-4 mt-4 border-t border-stone-100 text-[11px] text-stone-400">
-              Otomatis aktif sejak pembelian pertama
+            <div className="pt-4 border-t border-[#EAE4DA] text-[11px] text-[#57564F]/70 font-light">
+              Otomatis aktif sejak pemesanan perdana Anda
             </div>
           </div>
 
           {/* GOLD RADIANT */}
-          <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 via-white to-amber-100/30 border-2 border-amber-300 shadow-md relative overflow-hidden flex flex-col justify-between hover:shadow-xl transition scale-102">
-            <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[9px] font-black uppercase tracking-wider py-1 px-4 rounded-bl-xl shadow-xs">
-              Terpopuler
+          <div className="p-6 sm:p-8 bg-[#FAF8F4] border-2 border-[#87947B] flex flex-col justify-between space-y-6 relative shadow-editorial">
+            <div className="absolute top-0 right-0 bg-[#87947B] text-white text-[9px] tracking-widest uppercase font-semibold py-1 px-3">
+              Paling Populer
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                  Tier 2
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-[#87947B]">
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-[#87947B]">
+                  Tingkat 2
                 </span>
-                <Sparkles className="w-5 h-5 text-amber-500" />
+                <Sparkles className="w-4 h-4 stroke-[1.75]" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-black text-stone-900">
+                <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#292925]">
                   Gold Radiant
                 </h3>
-                <span className="text-[11px] sm:text-xs text-amber-700 font-medium">
-                  501 - 1.500 Poin
+                <span className="text-xs text-[#87947B] font-light">
+                  501 — 1.500 Poin
                 </span>
               </div>
-              <ul className="space-y-2 text-xs text-stone-700 pt-2 border-t border-amber-200/50">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="font-semibold">Bonus 1.25x Poin Reward</span>
+              <ul className="space-y-2.5 text-xs text-[#57564F] pt-4 border-t border-[#EAE4DA]">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span className="font-medium text-[#292925]">Bonus 1.25x Multiplier Poin</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
                   <span>Voucher Gratis Ongkir Bulanan</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Kado kejutan ulang tahun (Birthday Gift)</span>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Kado kejutan di bulan ulang tahun Anda</span>
                 </li>
               </ul>
             </div>
-            <div className="pt-4 mt-4 border-t border-amber-200/60 text-[11px] text-amber-800 font-medium">
-              Didapatkan setelah repurchase 3-4 kali
+            <div className="pt-4 border-t border-[#EAE4DA] text-[11px] text-[#87947B] font-light">
+              Dicapai setelah 3–4 kali pemesanan ulang (repurchase)
             </div>
           </div>
 
           {/* PLATINUM FLAWLESS */}
-          <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-stone-200/90 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                  Tier 3 (VIP)
+          <div className="p-6 sm:p-8 bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-[#57564F]">
+                <span className="text-[10px] tracking-widest uppercase font-semibold text-[#57564F]">
+                  Tingkat 3 (VIP)
                 </span>
-                <Crown className="w-5 h-5 text-purple-600" />
+                <Crown className="w-4 h-4 stroke-[1.75]" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-black text-stone-900">
+                <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#292925]">
                   Platinum Flawless
                 </h3>
-                <span className="text-[11px] sm:text-xs text-purple-700 font-medium">
+                <span className="text-xs text-[#57564F] font-light">
                   1.501+ Poin
                 </span>
               </div>
-              <ul className="space-y-2 text-xs text-stone-600 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="font-semibold">Bonus 1.5x Multiplier Poin</span>
+              <ul className="space-y-2.5 text-xs text-[#57564F] pt-4 border-t border-[#EAE4DA]">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span className="font-medium text-[#292925]">Bonus 1.5x Multiplier Poin</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Konsultasi Kulit Gratis dengan Dokter</span>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Konsultasi Kulit Eksklusif Tim Dermatologi</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Akses prioritas produk baru (Early Bird)</span>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#87947B] shrink-0 mt-0.5" />
+                  <span>Akses peluncuran produk baru (Early Bird)</span>
                 </li>
               </ul>
             </div>
-            <div className="pt-4 mt-4 border-t border-stone-100 text-[11px] text-stone-400">
-              Hak istimewa anggota kecantikan VIP
+            <div className="pt-4 border-t border-[#EAE4DA] text-[11px] text-[#57564F]/70 font-light">
+              Hak istimewa pelanggan loyalitas utama
             </div>
           </div>
         </div>
 
-        {/* INTERACTIVE ROW: LIVE CHECKER & SIMULATOR */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* LEFT: Live Point Checker */}
-          <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-md space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                <Search className="w-5 h-5" />
+        {/* Checker & Simulator Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Live Point Checker */}
+          <div className="lg:col-span-7 bg-[#F5F1EB] border border-[#EAE4DA] p-6 sm:p-8 space-y-6">
+            <div>
+              <div className="flex items-center gap-2 text-[#87947B] text-[11px] font-semibold uppercase tracking-wider mb-1">
+                <Search className="w-3.5 h-3.5" />
+                <span>Pemeriksaan Saldo Poin</span>
               </div>
-              <div>
-                <h3 className="font-extrabold text-base sm:text-lg text-stone-900">
-                  Cek Saldo Poin &amp; Potongan Diskon Saya
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Ketik nomor WhatsApp / HP Anda untuk memeriksa saldo poin yang bisa dipakai
-                </p>
-              </div>
+              <h3 className="font-serif text-xl sm:text-2xl font-normal text-[#292925]">
+                Cek Saldo &amp; Potongan Diskon Anda
+              </h3>
+              <p className="text-xs text-[#57564F] font-light mt-1">
+                Ketik nomor WhatsApp / HP yang terdaftar untuk memeriksa saldo poin aktif Anda.
+              </p>
             </div>
 
             <form onSubmit={handleCheckLoyalty} className="flex gap-2">
@@ -275,116 +270,109 @@ export default function LoyaltySection() {
                 placeholder="Contoh: 081234567890"
                 value={phoneInput}
                 onChange={(e) => setPhoneInput(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs sm:text-sm focus:ring-2 focus:ring-rose-500/20"
+                className="flex-1 px-4 py-2.5 bg-[#FAF8F4] border border-[#EAE4DA] text-xs sm:text-sm text-[#292925] focus:outline-none focus:border-[#292925] font-sans"
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 sm:px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm transition shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
+                className="px-5 py-2.5 bg-[#292925] hover:bg-[#1A1A18] text-white text-xs tracking-wider uppercase font-medium transition cursor-pointer disabled:opacity-50 shrink-0"
               >
                 {loading ? "Memeriksa..." : "Cek Poin"}
               </button>
             </form>
 
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-stone-400">
-              <span>💡 Coba demo nomor:</span>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#57564F]">
+              <span>Contoh demo:</span>
               <button
                 type="button"
                 onClick={() => handleDemoClick("081234567890")}
-                className="text-rose-600 underline hover:text-rose-700 cursor-pointer font-medium"
+                className="text-[#292925] underline hover:text-[#87947B] cursor-pointer font-medium"
               >
-                081234567890 (350 Poin)
+                081234567890 (350 Pts)
               </button>
               <span>atau</span>
               <button
                 type="button"
                 onClick={() => handleDemoClick("089876543210")}
-                className="text-rose-600 underline hover:text-rose-700 cursor-pointer font-medium"
+                className="text-[#292925] underline hover:text-[#87947B] cursor-pointer font-medium"
               >
-                089876543210 (1250 Poin)
+                089876543210 (1250 Pts)
               </button>
             </div>
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+              <div className="p-3 bg-[#FAF8F4] border border-[#C99A91] text-[#292925] text-xs">
                 {errorMessage}
               </div>
             )}
 
             {loyaltyData && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-50/80 via-white to-stone-50 border border-rose-200 space-y-4 animate-fade-in-up">
-                <div className="flex items-center justify-between">
+              <div className="p-5 bg-[#FAF8F4] border border-[#87947B] space-y-4">
+                <div className="flex items-center justify-between border-b border-[#EAE4DA] pb-3">
                   <div>
-                    <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">
-                      Member BeautyCare
+                    <span className="text-[10px] tracking-widest uppercase font-semibold text-[#87947B] block">
+                      Anggota Terdaftar
                     </span>
-                    <h4 className="font-black text-sm sm:text-base text-stone-900">
+                    <h4 className="font-serif text-lg font-medium text-[#292925]">
                       {customerName}
                     </h4>
-                    <span className="text-xs text-stone-500">
+                    <span className="text-xs text-[#57564F] font-mono">
                       {customerPhone}
                     </span>
                   </div>
 
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs ${
-                      customerTier === "PLATINUM"
-                        ? "bg-purple-100 text-purple-900 border border-purple-200"
-                        : customerTier === "GOLD"
-                        ? "bg-amber-100 text-amber-900 border border-amber-200"
-                        : "bg-stone-100 text-stone-800 border border-stone-200"
-                    }`}
-                  >
+                  <span className="px-3 py-1 bg-[#F2F5F0] border border-[#87947B] text-[#4A5543] text-xs font-semibold uppercase tracking-wider">
                     Tier: {customerTier}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-stone-200/80">
-                  <div className="p-3 rounded-xl bg-white border border-rose-100 shadow-2xs">
-                    <span className="text-[10px] text-stone-400 block font-medium">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-[#F5F1EB] border border-[#EAE4DA]">
+                    <span className="text-[10px] uppercase tracking-wider text-[#57564F] block">
                       Saldo Poin Aktif
                     </span>
-                    <span className="text-xl sm:text-2xl font-black text-rose-600 font-mono">
+                    <span className="font-mono text-xl sm:text-2xl font-bold text-[#87947B] block mt-0.5">
                       {customerPoints} Pts
                     </span>
                   </div>
-                  <div className="p-3 rounded-xl bg-white border border-rose-100 shadow-2xs">
-                    <span className="text-[10px] text-stone-400 block font-medium">
-                      Nilai Potongan Harga
+
+                  <div className="p-3 bg-[#F5F1EB] border border-[#EAE4DA]">
+                    <span className="text-[10px] uppercase tracking-wider text-[#57564F] block">
+                      Nilai Potongan Diskon
                     </span>
-                    <span className="text-xl sm:text-2xl font-black text-emerald-600 font-mono">
+                    <span className="font-serif text-xl sm:text-2xl font-medium text-[#292925] block mt-0.5">
                       {formatRupiah(discountValue)}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-stone-500 bg-white/70 p-2.5 rounded-xl border border-stone-200/60">
-                  🎉 Poin Anda dapat langsung dipotongkan saat memesan produk kecantikan berikutnya di keranjang belanja!
-                </div>
+                <p className="text-[11px] text-[#57564F] font-light">
+                  Poin Anda dapat langsung dipotongkan saat memesan formula berikutnya di keranjang belanja.
+                </p>
               </div>
             )}
           </div>
 
-          {/* RIGHT: Point & Repurchase Value Simulator */}
-          <div className="lg:col-span-5 bg-stone-900 text-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider">
-              <TrendingUp className="w-4 h-4" />
-              <span>Simulasi Penghematan Belanja Ulang</span>
+          {/* Value Simulator */}
+          <div className="lg:col-span-5 bg-[#FAF8F4] border border-[#EAE4DA] p-6 sm:p-8 space-y-6">
+            <div>
+              <div className="flex items-center gap-2 text-[#87947B] text-[11px] font-semibold uppercase tracking-wider mb-1">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Simulasi Repurchase</span>
+              </div>
+              <h3 className="font-serif text-xl sm:text-2xl font-normal text-[#292925]">
+                Kalkulator Tabungan Belanja
+              </h3>
+              <p className="text-xs text-[#57564F] font-light mt-1">
+                Ketahui potensi potongan harga yang akan Anda dapatkan dari rutinitas belanja berikutnya.
+              </p>
             </div>
 
-            <h3 className="text-lg sm:text-xl font-black tracking-tight">
-              Hitung Poin &amp; Diskon Anda
-            </h3>
-
-            <p className="text-xs text-stone-400 leading-relaxed">
-              Setiap kali Anda membeli serum, toner, atau moisturizer baru, tabungan poin Anda akan terus bertambah.
-            </p>
-
-            <div className="space-y-2 pt-2">
-              <div className="flex justify-between text-xs font-semibold">
-                <span className="text-stone-300">Nilai Belanja:</span>
-                <span className="text-rose-400 font-mono font-bold">
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#57564F]">Nominal Belanja:</span>
+                <span className="font-serif text-sm font-medium text-[#292925]">
                   {formatRupiah(simulatedSpend)}
                 </span>
               </div>
@@ -395,25 +383,25 @@ export default function LoyaltySection() {
                 step="25000"
                 value={simulatedSpend}
                 onChange={(e) => setSimulatedSpend(Number(e.target.value))}
-                className="w-full accent-rose-500 cursor-pointer"
+                className="w-full accent-[#87947B] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-stone-500">
+              <div className="flex justify-between text-[10px] text-[#57564F]/70 font-mono">
                 <span>Rp 50rb</span>
                 <span>Rp 500rb</span>
                 <span>Rp 1 Juta</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-stone-800/80 border border-stone-700 space-y-3">
+            <div className="p-4 bg-[#F5F1EB] border border-[#EAE4DA] space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-stone-300">Poin Didapat:</span>
-                <span className="text-base font-black text-amber-400 font-mono">
+                <span className="text-xs text-[#57564F]">Poin Didapat:</span>
+                <span className="font-mono text-sm font-bold text-[#87947B]">
                   +{simulatedPoints} Poin
                 </span>
               </div>
-              <div className="flex items-center justify-between border-t border-stone-700/80 pt-2">
-                <span className="text-xs text-stone-300">Diskon Belanja Berikutnya:</span>
-                <span className="text-base font-black text-emerald-400 font-mono">
+              <div className="flex items-center justify-between border-t border-[#EAE4DA] pt-2">
+                <span className="text-xs text-[#57564F]">Diskon Pesanan Selanjutnya:</span>
+                <span className="font-serif text-base font-medium text-[#292925]">
                   {formatRupiah(simulatedDiscount)}
                 </span>
               </div>
@@ -421,10 +409,10 @@ export default function LoyaltySection() {
 
             <a
               href="#katalog"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition text-center"
+              className="w-full py-3 bg-[#292925] hover:bg-[#1A1A18] text-white text-xs tracking-wider uppercase font-medium flex items-center justify-center gap-2 transition cursor-pointer text-center"
             >
-              <span>Mulai Kumpulkan Poin Sekarang</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Mulai Kumpulkan Poin</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[1.75]" />
             </a>
           </div>
         </div>

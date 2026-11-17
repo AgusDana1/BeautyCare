@@ -8,8 +8,8 @@ import {
   Clock,
   UserCheck,
   Share2,
-  Sparkles,
   ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { Article, Product, CartItem, Variant, PaymentMethod } from "@/app/types/storefront";
 import {
@@ -111,7 +111,7 @@ export default function ArticleDetailClient({
       ];
     }
     saveStoredCart(nextCart);
-    showToast(`✓ Berhasil menambahkan ${prod.name} ke keranjang!`);
+    showToast(`✓ Berhasil menambahkan ${prod.name} ke kantong!`);
   };
 
   const handleOpenOrderModal = (prod: Product) => {
@@ -163,11 +163,14 @@ export default function ArticleDetailClient({
           customerEmail: customerEmail || null,
           customerAddress,
           paymentMethod,
+          paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
           notes: notes || null,
-          items: cart.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
+          items: cart.map((c) => ({
+            productId: c.productId,
+            variantId: c.variantId,
+            selectedSize: c.selectedSize,
+            quantity: c.quantity,
+            price: c.price,
           })),
         }),
       });
@@ -194,6 +197,8 @@ export default function ArticleDetailClient({
     setOrderError("");
 
     try {
+      const currentPrice = selectedVariant ? selectedVariant.price : selectedProduct.price;
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -203,12 +208,15 @@ export default function ArticleDetailClient({
           customerEmail: customerEmail || null,
           customerAddress,
           paymentMethod,
+          paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
           notes: notes || null,
           items: [
             {
               productId: selectedProduct.id,
               variantId: selectedVariant?.id || null,
+              selectedSize: selectedVariant?.size || null,
               quantity: quantity,
+              price: currentPrice,
             },
           ],
         }),
@@ -229,69 +237,69 @@ export default function ArticleDetailClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#faf7f5] text-stone-900 font-sans antialiased">
+    <div className="min-h-screen bg-[#FAF8F4] text-[#292925] font-sans antialiased selection:bg-[#87947B]/20">
       <Navbar
         totalCartItems={totalCartItems}
         onOpenCart={() => setIsCartOpen(true)}
       />
 
       {toastMessage && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-stone-700/50 flex items-center gap-2.5 text-xs sm:text-sm">
-          <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="fixed top-20 right-4 sm:right-6 z-50 bg-[#292925] text-[#FAF8F4] px-4 py-3 rounded-sm shadow-editorial border border-[#33332D] flex items-center gap-2 text-xs font-sans animate-fade-in-up">
+          <CheckCircle2 className="w-4 h-4 text-[#87947B] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Breadcrumb */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
-        <nav className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-stone-500 font-medium overflow-x-auto">
-          <Link href="/" className="hover:text-rose-600 transition shrink-0">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+        <nav className="flex items-center gap-2 text-xs text-[#292925]/60 font-sans overflow-x-auto">
+          <Link href="/" className="hover:text-[#292925] transition shrink-0">
             Beranda
           </Link>
-          <ChevronRight className="w-3 h-3 text-stone-400 shrink-0" />
+          <ChevronRight className="w-3 h-3 text-[#292925]/40 shrink-0" />
           <Link
             href="/#edukasi"
-            className="hover:text-rose-600 transition shrink-0"
+            className="hover:text-[#292925] transition shrink-0"
           >
-            Edukasi &amp; Tips
+            The Clinical Journal
           </Link>
-          <ChevronRight className="w-3 h-3 text-stone-400 shrink-0" />
-          <span className="text-stone-800 font-semibold truncate">
+          <ChevronRight className="w-3 h-3 text-[#292925]/40 shrink-0" />
+          <span className="text-[#292925] font-medium truncate">
             {article.category}
           </span>
         </nav>
       </div>
 
       {/* Article Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-8">
         {/* Header Section */}
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-[#EAE4DA]/60 text-[#292925] text-[10px] font-medium uppercase tracking-wider font-mono">
               {article.category}
             </span>
-            <span className="text-stone-400 text-xs flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {article.readTimeMinutes} menit baca
+            <span className="text-[#292925]/60 text-xs flex items-center gap-1 font-sans">
+              <Clock className="w-3.5 h-3.5 text-[#87947B]" />
+              {article.readTimeMinutes} menit membaca
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-stone-900 tracking-tight leading-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl text-[#292925] tracking-tight leading-tight">
             {article.title}
           </h1>
 
           {/* Author Badge & Share */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 pb-4 border-b border-stone-200">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-3 pb-5 border-b border-[#EAE4DA]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+              <div className="w-9 h-9 rounded-full bg-[#292925] text-[#FAF8F4] flex items-center justify-center font-medium text-xs">
                 {article.authorName.slice(0, 2)}
               </div>
-              <div>
-                <span className="font-extrabold text-xs sm:text-sm text-stone-900 block flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="text-xs font-sans">
+                <span className="font-medium text-[#292925] block flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-[#87947B]" />
                   {article.authorName}
                 </span>
-                <span className="text-[10px] sm:text-xs text-stone-500">
+                <span className="text-[#292925]/60">
                   {article.authorRole}
                 </span>
               </div>
@@ -299,16 +307,16 @@ export default function ArticleDetailClient({
 
             <button
               onClick={handleShare}
-              className="px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3.5 py-1.5 border border-[#EAE4DA] bg-white hover:bg-[#FAF8F4] text-[#292925] text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{copiedLink ? "✓ Link Disalin!" : "Bagikan Tips"}</span>
+              <Share2 className="w-3.5 h-3.5 text-[#87947B]" />
+              <span>{copiedLink ? "✓ Link Disalin!" : "Bagikan Artikel"}</span>
             </button>
           </div>
         </div>
 
         {/* Featured Cover Image */}
-        <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-stone-200">
+        <div className="relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden border border-[#EAE4DA] bg-[#EAE4DA]">
           <img
             src={article.coverImage}
             alt={article.title}
@@ -317,18 +325,18 @@ export default function ArticleDetailClient({
         </div>
 
         {/* Excerpt Lead */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-rose-50/70 border border-rose-100 text-stone-700 text-xs sm:text-sm font-medium leading-relaxed italic">
+        <div className="p-5 sm:p-6 bg-[#EAE4DA]/30 border-l-2 border-[#87947B] text-[#292925]/85 text-xs sm:text-sm font-serif italic leading-relaxed">
           &ldquo;{article.excerpt}&rdquo;
         </div>
 
         {/* Article Body */}
-        <div className="prose prose-stone max-w-none text-xs sm:text-sm text-stone-700 leading-relaxed space-y-4">
+        <div className="prose prose-stone max-w-none text-xs sm:text-sm text-[#292925]/80 leading-relaxed space-y-4 font-sans">
           {article.content.split("\n\n").map((para, i) => {
             if (para.startsWith("## ")) {
               return (
                 <h2
                   key={i}
-                  className="text-lg sm:text-xl font-black text-stone-900 pt-4 border-t border-stone-100"
+                  className="font-serif text-xl sm:text-2xl text-[#292925] pt-6 border-t border-[#EAE4DA]"
                 >
                   {para.replace("## ", "")}
                 </h2>
@@ -338,7 +346,7 @@ export default function ArticleDetailClient({
               return (
                 <h3
                   key={i}
-                  className="text-base sm:text-lg font-bold text-stone-900 pt-2"
+                  className="font-serif text-lg text-[#292925] pt-3"
                 >
                   {para.replace("### ", "")}
                 </h3>
@@ -348,7 +356,7 @@ export default function ArticleDetailClient({
               return (
                 <div
                   key={i}
-                  className="p-4 rounded-xl bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs italic"
+                  className="p-4 bg-white border border-[#EAE4DA] text-[#292925]/80 text-xs italic font-serif"
                 >
                   {para.replace("> ", "")}
                 </div>
@@ -358,41 +366,40 @@ export default function ArticleDetailClient({
           })}
         </div>
 
-        {/* Callout Doctor Recommendation */}
-        <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-stone-200/90 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
-            <span>Saran Khusus dari Dermatologist</span>
-          </div>
-          <h4 className="text-sm sm:text-base font-extrabold text-stone-900">
-            Kunci Keberhasilan: Konsistensi Pemakaian &amp; Formulasi Sesuai Kebutuhan
+        {/* Callout Editorial Recommendation */}
+        <div className="p-6 bg-white border border-[#EAE4DA] space-y-2 rounded-sm">
+          <span className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#87947B] block font-sans">
+            Rekomendasi Klinis
+          </span>
+          <h4 className="font-serif text-base sm:text-lg text-[#292925]">
+            Konsistensi &amp; Respek Terhadap Ritme Biologis Kulit
           </h4>
-          <p className="text-xs text-stone-600 leading-relaxed">
-            Kulit membutuhkan waktu minimal 21-28 hari untuk proses regenerasi sel baru. Hindari berganti-ganti produk secara drastis dalam jangka pendek dan prioritaskan kandungan pemulih barrier seperti Ceramide, Niacinamide, dan Hyaluronic Acid.
+          <p className="text-xs text-[#292925]/75 leading-relaxed font-sans">
+            Kulit membutuhkan durasi minimal 21-28 hari untuk menyelesaikan siklus turnover seluler. Prioritaskan bahan bio-kompatibel seperti Ceramide, Niacinamide terukur, dan Hyaluronic multi-molekul sebelum menambahkan zat eksfoliasi agresif.
           </p>
         </div>
 
         {/* Direct Product Recommendations Section */}
         {recommendedProducts.length > 0 && (
-          <div className="pt-8 border-t border-stone-200 space-y-4">
+          <div className="pt-10 border-t border-[#EAE4DA] space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">
-                  Rekomendasi Produk Terkait
+                <span className="text-[10px] text-[#87947B] font-semibold uppercase tracking-[0.2em] block font-sans">
+                  Formulasi Terkait
                 </span>
-                <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
-                  Produk Pilihan yang Disebutkan dalam Panduan Ini
+                <h3 className="font-serif text-lg sm:text-xl text-[#292925]">
+                  Produk yang Disebutkan dalam Pembahasan
                 </h3>
               </div>
               <Link
                 href="/#katalog"
-                className="text-xs font-bold text-rose-600 hover:underline hidden sm:inline"
+                className="text-xs font-medium text-[#87947B] hover:text-[#292925] underline hidden sm:inline font-sans"
               >
-                Lihat Semua Produk →
+                Lihat Seluruh Koleksi →
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
               {recommendedProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}
@@ -405,20 +412,20 @@ export default function ArticleDetailClient({
           </div>
         )}
 
-        {/* Back to Blog / Articles Link */}
-        <div className="pt-6 flex justify-between items-center text-xs">
+        {/* Back Link */}
+        <div className="pt-8 flex justify-between items-center text-xs font-sans border-t border-[#EAE4DA]">
           <Link
             href="/#edukasi"
-            className="flex items-center gap-1.5 font-bold text-stone-600 hover:text-rose-600 transition"
+            className="flex items-center gap-1.5 font-medium text-[#292925]/70 hover:text-[#292925] transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Daftar Edukasi</span>
+            <span>Kembali ke Jurnal Edukasi</span>
           </Link>
           <Link
             href="/#katalog"
-            className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 transition"
+            className="px-4 py-2 bg-[#292925] text-[#FAF8F4] hover:bg-[#87947B] uppercase tracking-wider font-medium text-xs transition"
           >
-            Belanja Produk Skincare →
+            Eksplorasi Formulasi →
           </Link>
         </div>
       </main>

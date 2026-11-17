@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Clock, ArrowRight, UserCheck } from "lucide-react";
+import { Clock, ArrowRight, UserCheck } from "lucide-react";
 import { Article } from "../types/storefront";
 
 interface ArticlesSectionProps {
@@ -20,76 +20,75 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
   });
 
   return (
-    <section id="edukasi" className="py-8 sm:py-20 bg-white border-t border-stone-100">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-12">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-rose-200/60">
-              <BookOpen className="w-3.5 h-3.5 text-rose-600" />
-              <span>Edukasi &amp; Panduan Kecantikan</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              Tips Kulit Sehat &amp; Tren Skincare 2026
+    <section id="edukasi" className="py-16 sm:py-24 bg-[#FAF8F4] border-t border-[#EAE4DA]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14">
+        {/* Editorial Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#EAE4DA]">
+          <div className="space-y-2.5 max-w-2xl">
+            <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B]">
+              The Clinical Journal
+            </span>
+            <h2 className="font-serif text-2xl sm:text-4xl text-[#292925] tracking-tight leading-tight">
+              Edukasi Formulasi &amp; Kesehatan Kulit
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 max-w-2xl leading-relaxed">
-              Ditulis dan dikurasi oleh dokter spesialis kulit dan pakar dermatologi untuk memandu Anda memilih formula yang tepat sesuai kebutuhan kulit.
+            <p className="text-xs sm:text-sm text-[#292925]/70 leading-relaxed font-sans">
+              Wawasan dermatologi berbasis bukti ilmiah, panduan layering bahan aktif, dan tips merawat keseimbangan barrier kulit di iklim tropis.
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1">
+          {/* Minimalist Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {categories.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-bold transition shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all cursor-pointer whitespace-nowrap ${
                   selectedCategory === cat
-                    ? "bg-rose-600 text-white shadow-xs"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    ? "bg-[#292925] text-[#FAF8F4]"
+                    : "bg-[#EAE4DA]/50 text-[#292925]/75 hover:bg-[#EAE4DA]"
                 }`}
               >
-                {cat === "ALL" ? "Semua Artikel" : cat}
+                {cat === "ALL" ? "Semua Topik" : cat}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        {/* Editorial Articles Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
           {filteredArticles.map((art) => (
             <article
               key={art.id}
-              className="group bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 shadow-2xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+              className="group flex flex-col justify-between bg-white border border-[#EAE4DA] rounded-sm overflow-hidden shadow-xs hover:border-[#87947B]/50 transition-all duration-300"
             >
-              <Link
-                href={`/article/${art.slug}`}
-                className="relative aspect-[16/10] overflow-hidden bg-stone-100 block cursor-pointer"
-              >
-                <img
-                  src={art.coverImage}
-                  alt={art.title}
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full bg-white/95 backdrop-blur-xs text-rose-700 shadow-xs border border-rose-100">
-                    {art.category}
-                  </span>
-                </div>
-                <div className="absolute bottom-3 right-3">
-                  <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full bg-black/60 text-white backdrop-blur-xs flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {art.readTimeMinutes} mnt baca
-                  </span>
-                </div>
-              </Link>
+              <div>
+                <Link
+                  href={`/article/${art.slug}`}
+                  className="relative aspect-[16/11] overflow-hidden bg-[#EAE4DA] block cursor-pointer"
+                >
+                  <img
+                    src={art.coverImage}
+                    alt={art.title}
+                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-1 text-[10px] font-medium tracking-wider uppercase bg-[#FAF8F4]/95 text-[#292925] border border-[#EAE4DA]">
+                      {art.category}
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 right-3">
+                    <span className="px-2 py-0.5 text-[10px] tracking-wide bg-[#292925]/85 text-[#FAF8F4] flex items-center gap-1 font-sans">
+                      <Clock className="w-3 h-3 text-[#C99A91]" />
+                      {art.readTimeMinutes} mnt baca
+                    </span>
+                  </div>
+                </Link>
 
-              <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] sm:text-xs text-stone-400">
-                    <span className="flex items-center gap-1 font-medium text-stone-700">
-                      <UserCheck className="w-3 h-3 text-rose-600" />
+                <div className="p-5 sm:p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-[11px] text-[#292925]/60 font-sans">
+                    <span className="flex items-center gap-1 font-medium text-[#292925]">
+                      <UserCheck className="w-3.5 h-3.5 text-[#87947B]" />
                       {art.authorName}
                     </span>
                     <span>•</span>
@@ -97,28 +96,28 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
                   </div>
 
                   <Link href={`/article/${art.slug}`} className="block">
-                    <h3 className="font-extrabold text-sm sm:text-base text-stone-900 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug">
+                    <h3 className="font-serif text-lg sm:text-xl text-[#292925] group-hover:text-[#87947B] transition-colors leading-snug line-clamp-2">
                       {art.title}
                     </h3>
                   </Link>
 
-                  <p className="text-[11px] sm:text-xs text-stone-500 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-[#292925]/70 line-clamp-3 leading-relaxed font-sans">
                     {art.excerpt}
                   </p>
                 </div>
+              </div>
 
-                <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-                  <span className="text-[10px] text-stone-400">
-                    BeautyCare Edukasi
-                  </span>
-                  <Link
-                    href={`/article/${art.slug}`}
-                    className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform"
-                  >
-                    <span>Baca Artikel</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
+              <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-3 border-t border-[#EAE4DA]/60 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-wider text-[#292925]/50 font-sans">
+                  BeautyCare Journal
+                </span>
+                <Link
+                  href={`/article/${art.slug}`}
+                  className="text-xs font-medium text-[#292925] hover:text-[#87947B] flex items-center gap-1.5 transition-colors group/link"
+                >
+                  <span>Baca Selengkapnya</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                </Link>
               </div>
             </article>
           ))}

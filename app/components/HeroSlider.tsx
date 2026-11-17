@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, ShieldCheck, Flame } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { HeroSlide } from "../types/storefront";
 
 interface HeroSliderProps {
@@ -26,172 +26,145 @@ export default function HeroSlider({
 }: HeroSliderProps) {
   if (isLoading || !slides || slides.length === 0) {
     return (
-      <section className="relative overflow-hidden w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-6 pb-4 sm:pb-10">
-        <div className="relative rounded-2xl sm:rounded-4xl overflow-hidden shadow-xl sm:shadow-2xl border border-stone-200/70 aspect-[4/4.2] sm:aspect-[16/9] md:aspect-[21/9] min-h-[340px] sm:min-h-[480px] md:min-h-[520px] bg-stone-900/95 flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-10 h-10 border-3 border-rose-500 border-t-transparent rounded-full animate-spin mb-3" />
-          <span className="text-xs sm:text-sm font-semibold text-stone-200">
-            Memuat Promo &amp; Rekomendasi Unggulan...
-          </span>
-          <span className="text-[10px] sm:text-xs text-stone-400 mt-1">
-            Mengambil data dari katalog resmi BeautyCare
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] bg-[#F5F1EB] border border-[#EAE4DA] flex flex-col items-center justify-center text-center p-8">
+          <div className="w-8 h-8 border-2 border-[#87947B] border-t-transparent rounded-full animate-spin mb-3" />
+          <span className="text-xs uppercase tracking-widest text-[#57564F]">
+            Memuat Katalog Editorial...
           </span>
         </div>
       </section>
     );
   }
 
+  const active = slides[currentSlide] || slides[0];
+
   return (
     <section
-      className="relative overflow-hidden w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-6 pb-4 sm:pb-10"
+      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
       onMouseEnter={() => onPauseToggle(true)}
       onMouseLeave={() => onPauseToggle(false)}
       onTouchStart={() => onPauseToggle(true)}
       onTouchEnd={() => onPauseToggle(false)}
     >
-      <div className="relative rounded-2xl sm:rounded-4xl overflow-hidden shadow-xl sm:shadow-2xl border border-stone-200/70 aspect-[4/4.2] sm:aspect-[16/9] md:aspect-[21/9] min-h-[340px] sm:min-h-[480px] md:min-h-[520px] bg-stone-900">
-        {/* Dynamic Autoplay Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1 z-30 bg-black/40">
-          <div
-            key={currentSlide}
-            className="h-full bg-gradient-to-r from-rose-500 via-pink-400 to-amber-300 animate-progress-fill"
-          />
-        </div>
-
-        {/* Slides */}
-        {slides.map((slide, index) => {
-          const isActive = index === currentSlide;
-          return (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
-              }`}
-            >
-              {/* Background Image with subtle zoom */}
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className={`w-full h-full object-cover object-center transition-transform duration-10000 ease-out ${
-                  isActive ? "scale-105" : "scale-100"
-                }`}
-              />
-
-              {/* Aesthetic Dark Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-stone-950/95 via-stone-950/75 sm:via-stone-950/60 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-transparent to-stone-950/30" />
-
-              {/* Content Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-12 md:px-16 lg:px-20 max-w-3xl">
-                {/* Badge */}
-                <div className="inline-flex items-center gap-1 sm:gap-2 px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full bg-rose-500/20 backdrop-blur-md border border-rose-300/40 text-rose-200 text-[9px] sm:text-xs font-semibold w-fit mb-2 sm:mb-4 animate-fade-in-up">
-                  <Sparkles className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-rose-300 animate-pulse" />
-                  <span>{slide.badge}</span>
-                </div>
-
-                {/* Title */}
-                <h1 className="text-lg sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.25] mb-1.5 sm:mb-3 drop-shadow-md animate-fade-in-up">
-                  {slide.title}
-                </h1>
-
-                {/* Description */}
-                <p className="text-[11px] sm:text-sm lg:text-base text-stone-200 max-w-xl leading-relaxed mb-3.5 sm:mb-6 drop-shadow-xs line-clamp-2 sm:line-clamp-none animate-fade-in-up">
-                  {slide.description}
-                </p>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 animate-fade-in-up">
-                  <a
-                    href="#katalog"
-                    onClick={() => {
-                      if (slide.targetCategory !== "ALL") {
-                        onSelectCategory(slide.targetCategory);
-                      }
-                    }}
-                    className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold text-[11px] sm:text-sm shadow-md sm:shadow-lg shadow-rose-600/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1 sm:gap-2 cursor-pointer"
-                  >
-                    <span>{slide.primaryCta}</span>
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </a>
-
-                  <a
-                    href="#faq"
-                    className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold text-[11px] sm:text-sm border border-white/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1 sm:gap-2 cursor-pointer"
-                  >
-                    <span>FAQ &amp; Bantuan</span>
-                  </a>
-                </div>
-
-                {/* Floating Stat Badge */}
-                <div className="mt-3.5 sm:mt-8 flex items-center gap-2 sm:gap-3">
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-stone-900/60 backdrop-blur-md border border-white/10 text-white text-[10px] sm:text-xs">
-                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[9px] sm:text-[11px] leading-tight">
-                        {slide.statBadge}
-                      </span>
-                      <span className="text-[8px] sm:text-[10px] text-stone-300 leading-tight">
-                        {slide.statSub}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+      <div className="relative border border-[#EAE4DA] bg-[#F5F1EB] overflow-hidden">
+        {/* Editorial Split / Layered Hero */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px] sm:min-h-[520px] lg:min-h-[580px]">
+          {/* Left Column: Editorial Narrative & Action */}
+          <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-14 z-10 bg-[#FAF8F4]/90 lg:bg-[#FAF8F4]/80 backdrop-blur-xs">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Subtle Botanical Badge */}
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#87947B]" />
+                <span className="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-[#87947B] font-semibold">
+                  {active.badge}
+                </span>
               </div>
 
-              {/* Right Side 3D Interactive Floating Highlight Pill (Visible on Desktop / Tablet) */}
-              <div className="hidden lg:flex absolute right-12 top-1/2 -translate-y-1/2 flex-col items-end gap-3 pointer-events-none z-10 animate-fade-in-up">
-                <div className="p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl space-y-3 max-w-[260px] animate-float-3d">
-                  <div className="flex items-center gap-2 text-rose-300 text-xs font-bold uppercase tracking-wider">
-                    <Flame className="w-4 h-4 text-rose-400 animate-pulse" />
-                    <span>Diskon &amp; Poin 2x</span>
-                  </div>
-                  <p className="text-xs text-stone-200 leading-relaxed font-medium">
-                    Nikmati diskon langsung per ukuran (ml) serta poin cashback di setiap pesanan.
-                  </p>
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-[11px] text-emerald-300 font-semibold">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Garansi 100% Produk Original BPOM</span>
-                  </div>
+              {/* Editorial Headline */}
+              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#292925] font-normal leading-[1.18] transition-all">
+                {active.title}
+              </h1>
+
+              {/* Thoughtful Description */}
+              <p className="text-xs sm:text-sm lg:text-[15px] text-[#57564F] leading-relaxed max-w-lg font-light">
+                {active.description}
+              </p>
+
+              {/* Action Buttons */}
+              <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
+                <a
+                  href="#katalog"
+                  onClick={() => {
+                    if (active.targetCategory !== "ALL") {
+                      onSelectCategory(active.targetCategory);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#292925] text-white text-xs tracking-[0.14em] uppercase font-medium hover:bg-[#1A1A18] transition cursor-pointer"
+                >
+                  <span>{active.primaryCta}</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[1.75]" />
+                </a>
+
+                <a
+                  href="#concerns"
+                  className="inline-flex items-center gap-1.5 text-xs tracking-[0.12em] uppercase font-medium text-[#292925] hover:text-[#87947B] transition py-3 underline underline-offset-4 decoration-[#EAE4DA] hover:decoration-[#87947B]"
+                >
+                  <span>Konsultasi Kebutuhan</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Bottom Meta & Credentials */}
+            <div className="pt-6 sm:pt-10 border-t border-[#EAE4DA] mt-6 flex items-center justify-between text-[11px] sm:text-xs text-[#57564F]">
+              <div className="flex flex-col">
+                <span className="font-medium text-[#292925]">{active.statBadge}</span>
+                <span className="text-[10px] text-[#87947B]">{active.statSub}</span>
+              </div>
+
+              {/* Slide Counter: e.g. 01 / 04 */}
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xs tracking-wider text-[#292925]">
+                  0{currentSlide + 1} / 0{slides.length}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={onPrev}
+                    aria-label="Slide Sebelumnya"
+                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={onNext}
+                    aria-label="Slide Berikutnya"
+                    className="w-7 h-7 flex items-center justify-center border border-[#EAE4DA] hover:border-[#292925] text-[#292925] transition"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
-          );
-        })}
+          </div>
 
-        {/* Left Arrow Button */}
-        <button
-          onClick={onPrev}
-          aria-label="Slide Sebelumnya"
-          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-rose-600/90 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group shadow-lg"
-        >
-          <ChevronLeft className="w-3.5 h-3.5 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:-translate-x-0.5 transition-transform" />
-        </button>
+          {/* Right Column: Authentic Editorial Product Imagery */}
+          <div className="lg:col-span-6 relative aspect-[4/3] lg:aspect-auto overflow-hidden bg-[#EAE4DA]">
+            {slides.map((slide, idx) => {
+              const isCurrent = idx === currentSlide;
+              return (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    isCurrent ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="w-full h-full object-cover object-center"
+                  />
+                  {/* Subtle tonal film overlay */}
+                  <div className="absolute inset-0 bg-[#292925]/5" />
+                </div>
+              );
+            })}
 
-        {/* Right Arrow Button */}
-        <button
-          onClick={onNext}
-          aria-label="Slide Berikutnya"
-          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-rose-600/90 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group shadow-lg"
-        >
-          <ChevronRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        {/* Pagination Indicators with Preview Titles */}
-        <div className="absolute bottom-2.5 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 bg-stone-950/50 backdrop-blur-md px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-white/10 shadow-lg">
-          {slides.map((_, idx) => {
-            const isActive = idx === currentSlide;
-            return (
-              <button
-                key={idx}
-                onClick={() => onSelectSlide(idx)}
-                aria-label={`Ke slide ${idx + 1}`}
-                className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                  isActive
-                    ? "w-6 sm:w-8 bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 shadow-xs"
-                    : "w-2 sm:w-2.5 bg-white/40 hover:bg-white/80"
-                }`}
-              />
-            );
-          })}
+            {/* Quick slide dots overlay on image */}
+            <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-[#FAF8F4]/80 backdrop-blur-xs px-2.5 py-1 border border-[#EAE4DA]">
+              {slides.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  onClick={() => onSelectSlide(dotIdx)}
+                  aria-label={`Slide ${dotIdx + 1}`}
+                  className={`h-1 transition-all ${
+                    dotIdx === currentSlide
+                      ? "w-6 bg-[#292925]"
+                      : "w-2 bg-[#87947B]/40 hover:bg-[#87947B]"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

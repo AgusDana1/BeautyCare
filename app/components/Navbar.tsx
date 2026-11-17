@@ -3,18 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Sparkles,
-  ShoppingCart,
   Menu,
   X,
-  Compass,
-  Award,
-  BookOpen,
-  HelpCircle,
-  MessageCircle,
   User,
   LogOut,
-  Tag,
+  Award,
+  Search,
+  ShoppingBag,
 } from "lucide-react";
 import CustomerAuthModal from "./CustomerAuthModal";
 import NotificationDropdown, { AppNotification } from "./NotificationDropdown";
@@ -59,22 +54,6 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
     }
   };
 
-  // Fetch active promo event banner (e.g. 12.1, 11.2, 10.3)
-  const fetchActiveEvent = async () => {
-    try {
-      const res = await fetch("/api/events");
-      const data = await res.json();
-      if (data.success && data.events && data.events.length > 0) {
-        const topEvent = data.events[0];
-        setActiveEventBanner(topEvent.bannerText || `🔥 Promo Spesial ${topEvent.title}: Diskon ${topEvent.discountPercent}%!`);
-      } else {
-        setActiveEventBanner(null);
-      }
-    } catch {
-      setActiveEventBanner(null);
-    }
-  };
-
   useEffect(() => {
     let isMounted = true;
     const init = async () => {
@@ -95,7 +74,7 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
           const topEvent = evtData.events[0];
           setActiveEventBanner(
             topEvent.bannerText ||
-              `🔥 Promo Spesial ${topEvent.title}: Diskon ${topEvent.discountPercent}%!`
+              `Promo Spesial ${topEvent.title}: Diskon ${topEvent.discountPercent}% dengan kode ${topEvent.code}`
           );
         } else {
           setActiveEventBanner(null);
@@ -108,10 +87,21 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
       }
     };
 
-    void init();
+    init();
 
     const handleCustomerUpdate = () => fetchCustomer();
-    const handleEventsUpdate = () => fetchActiveEvent();
+    const handleEventsUpdate = () => {
+      fetch("/api/events")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.success && data.events && data.events.length > 0) {
+            setActiveEventBanner(data.events[0].bannerText || `Promo Spesial ${data.events[0].title}`);
+          } else {
+            setActiveEventBanner(null);
+          }
+        })
+        .catch(() => {});
+    };
 
     window.addEventListener("beautycare-customer-updated", handleCustomerUpdate);
     window.addEventListener("beautycare-events-updated", handleEventsUpdate);
@@ -170,68 +160,76 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
 
   return (
     <>
-      {/* Top Banner Announcement (Shows active 12.1/11.2/10.3 event or default repurchase promo) */}
-      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 text-white text-[10px] sm:text-xs py-1.5 sm:py-2 px-3 text-center font-medium tracking-wide flex items-center justify-center gap-1 sm:gap-2 relative z-30">
-        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
-        <span className="truncate sm:overflow-visible font-semibold">
-          {activeEventBanner || "Promo Repurchase: Kumpulkan Poin Loyalty & Gratis Ongkir Se-Indonesia"}
-        </span>
-        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 animate-pulse" />
+      {/* Editorial Announcement Bar */}
+      <div className="bg-[#EAE4DA] text-[#292925] text-[11px] sm:text-xs py-2 px-4 text-center font-medium tracking-wider border-b border-[#E0D8CB] transition-colors relative z-30">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+          <span>
+            {activeEventBanner ||
+              "Gratis pengiriman ke seluruh Indonesia untuk pesanan di atas Rp 300.000 — Formula botani teruji klinis BPOM"}
+          </span>
+        </div>
       </div>
 
-      {/* Main Sticky Navbar (Highest z-index z-50 to never be buried) */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-xs transition-all duration-200">
-        {/* Main Navbar Header Row */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-18 flex items-center justify-between gap-2 relative z-50">
-          {/* Brand Logo */}
+      {/* Main Sticky Navbar */}
+      <header className="sticky top-0 z-50 bg-[#FAF8F4]/95 backdrop-blur-md border-b border-[#EAE4DA] transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+          {/* Brand Logo - Editorial Luxury Aesthetic */}
           <Link
             href="/"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-1.5 sm:gap-2.5 group transition-transform duration-300 hover:scale-105 shrink-0"
+            className="flex items-center gap-2 group shrink-0"
           >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-sm sm:shadow-md shadow-rose-500/20 group-hover:rotate-6 transition-all duration-300">
-              <Sparkles className="w-3.5 h-3.5 sm:w-5 sm:h-5 animate-pulse-glow" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-base sm:text-xl tracking-tight text-stone-900 group-hover:text-rose-600 transition-colors">
-                BeautyCare<span className="text-rose-500">.</span>
-              </span>
-              <span className="text-[8px] sm:text-[10px] tracking-widest uppercase text-stone-400 font-semibold -mt-1">
-                Aesthetic &amp; Skin
-              </span>
-            </div>
+            <span className="font-serif text-xl sm:text-2xl tracking-[0.2em] font-normal text-[#292925] uppercase transition-opacity hover:opacity-80">
+              BeautyCare
+            </span>
           </Link>
 
-          {/* Desktop Nav Links (Visible only on desktop >= lg) */}
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-semibold uppercase tracking-wider text-stone-600">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-8 text-[12px] font-medium tracking-[0.12em] uppercase text-[#57564F]">
             <Link
               href="/#katalog"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
+              className="hover:text-[#292925] transition-colors py-1 relative hover:after:w-full after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#292925] after:transition-all after:duration-300"
             >
-              Katalog
+              Koleksi
+            </Link>
+            <Link
+              href="/#concerns"
+              className="hover:text-[#292925] transition-colors py-1 relative hover:after:w-full after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#292925] after:transition-all after:duration-300"
+            >
+              Kebutuhan Kulit
+            </Link>
+            <Link
+              href="/#philosophy"
+              className="hover:text-[#292925] transition-colors py-1 relative hover:after:w-full after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#292925] after:transition-all after:duration-300"
+            >
+              Filosofi
+            </Link>
+            <Link
+              href="/#ritual"
+              className="hover:text-[#292925] transition-colors py-1 relative hover:after:w-full after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#292925] after:transition-all after:duration-300"
+            >
+              Panduan Rutinitas
             </Link>
             <Link
               href="/#loyalty"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
+              className="hover:text-[#292925] transition-colors py-1 relative hover:after:w-full after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-[#292925] after:transition-all after:duration-300"
             >
-              Loyalty Poin
+              Keanggotaan
             </Link>
-            <Link
-              href="/#edukasi"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
-            >
-              Edukasi
-            </Link>
-            <Link
-              href="/#faq"
-              className="hover:text-rose-600 transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-rose-500 hover:after:w-full after:transition-all after:duration-300 cursor-pointer"
-            >
-              FAQ
-            </Link>
-          </div>
+          </nav>
 
-          {/* Right Action Area */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Right Action Utilities */}
+          <div className="flex items-center gap-3 sm:gap-5 text-[#292925]">
+            {/* Search shortcut */}
+            <Link
+              href="/#katalog"
+              className="p-1.5 hover:text-[#87947B] transition-colors"
+              title="Cari Produk"
+              aria-label="Cari Produk"
+            >
+              <Search className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[1.75]" />
+            </Link>
+
             {/* Notification Dropdown for Events & Updates */}
             <NotificationDropdown
               notifications={customer?.notifications || []}
@@ -239,70 +237,48 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
               onRefresh={fetchCustomer}
             />
 
-            {/* Cart Icon: Always visible, badge shows when totalCartItems > 0 */}
-            <button
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                onOpenCart();
-              }}
-              className="relative p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-white border border-rose-200/90 text-stone-800 hover:text-rose-600 hover:border-rose-400 shadow-xs sm:shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center group"
-              aria-label="Keranjang Belanja"
-              title={
-                totalCartItems > 0
-                  ? `Keranjang Belanja (${totalCartItems} barang)`
-                  : "Keranjang Belanja"
-              }
-            >
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 group-hover:rotate-6 transition-transform" />
-              {totalCartItems > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 min-w-[16px] sm:min-w-[20px] h-4 sm:h-5 px-1 bg-gradient-to-r from-rose-600 to-pink-600 text-white text-[8px] sm:text-[10px] font-black rounded-full flex items-center justify-center shadow-xs sm:shadow-md shadow-rose-600/30 animate-pulse">
-                  {totalCartItems}
-                </span>
-              )}
-            </button>
-
-            {/* Customer Auth Button: "Login | Register" (or User Profile if logged in) */}
+            {/* Customer Auth / Profile */}
             {customer ? (
               <div className="relative">
                 <button
                   onClick={() => setIsProfileMenuOpen((prev) => !prev)}
-                  className="hidden sm:flex items-center gap-2 py-1.5 px-3 rounded-lg sm:rounded-xl bg-rose-50 border border-rose-200/90 text-stone-800 hover:bg-rose-100/70 transition cursor-pointer text-xs font-bold"
+                  className="hidden sm:flex items-center gap-2 py-1.5 px-3 rounded-full border border-[#EAE4DA] bg-[#F5F1EB] hover:bg-[#EAE4DA] transition text-xs font-medium text-[#292925] cursor-pointer"
                 >
-                  <div className="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold text-[10px]">
-                    {customer.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <span className="truncate max-w-[110px]">{customer.name.split(" ")[0]}</span>
+                  <span className="w-5 h-5 rounded-full bg-[#87947B] text-white flex items-center justify-center text-[10px] font-semibold">
+                    {customer.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="truncate max-w-[100px]">{customer.name.split(" ")[0]}</span>
                 </button>
 
                 {isProfileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 p-2 z-50 animate-fade-in-down">
-                    <div className="px-3 py-2.5 border-b border-stone-100">
-                      <p className="font-extrabold text-xs text-stone-900 truncate">{customer.name}</p>
-                      <p className="text-[10px] text-stone-400 truncate">{customer.email}</p>
-                      <div className="mt-2 flex items-center justify-between text-[10px] font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200/60 text-amber-800">
-                        <span>Poin Loyalitas:</span>
-                        <span>{customer.loyaltyPoints || 0} Poin</span>
+                  <div className="absolute right-0 mt-2 w-64 bg-[#FAF8F4] border border-[#EAE4DA] shadow-editorial p-3 z-50 text-[#292925]">
+                    <div className="pb-3 border-b border-[#EAE4DA]">
+                      <p className="font-serif text-base font-medium truncate">{customer.name}</p>
+                      <p className="text-[11px] text-[#57564F] truncate">{customer.email}</p>
+                      <div className="mt-2.5 flex items-center justify-between text-xs py-1.5 px-2.5 bg-[#F2F5F0] border border-[#D5DDD0] text-[#4A5543]">
+                        <span>Saldo Loyalitas</span>
+                        <span className="font-semibold">{customer.loyaltyPoints || 0} Poin</span>
                       </div>
                     </div>
 
-                    <div className="py-1">
+                    <div className="py-2 space-y-1">
                       <Link
                         href="/#loyalty"
                         onClick={() => setIsProfileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 text-xs text-stone-700 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition"
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[#57564F] hover:text-[#292925] hover:bg-[#EAE4DA]/50 transition"
                       >
-                        <Award className="w-3.5 h-3.5 text-rose-500" />
-                        <span>Tukar Poin Diskon</span>
+                        <Award className="w-3.5 h-3.5 text-[#87947B]" />
+                        <span>Klub Keanggotaan</span>
                       </Link>
                     </div>
 
-                    <div className="pt-1 border-t border-stone-100">
+                    <div className="pt-2 border-t border-[#EAE4DA]">
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-medium text-[#C99A91] hover:text-[#B27B71] hover:bg-[#F9F3F1] transition cursor-pointer text-left"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        <span>Keluar (Logout)</span>
+                        <span>Keluar Akun</span>
                       </button>
                     </div>
                   </div>
@@ -314,56 +290,105 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
                   setAuthMode("login");
                   setIsAuthModalOpen(true);
                 }}
-                className="hidden sm:flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm sm:shadow-md shadow-rose-600/25 items-center gap-1.5 cursor-pointer shrink-0"
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs tracking-wider uppercase font-medium hover:text-[#87947B] transition cursor-pointer py-1"
               >
-                <User className="w-3.5 h-3.5" />
-                <span>Login | Register</span>
+                <User className="w-3.5 h-3.5 stroke-[1.75]" />
+                <span>Masuk</span>
               </button>
             )}
 
-            {/* Hamburger Button for Tablet & Mobile (Visible on < lg) */}
+            {/* Shopping Bag Icon */}
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onOpenCart();
+              }}
+              className="flex items-center gap-1.5 text-xs font-medium tracking-wider uppercase hover:text-[#87947B] transition cursor-pointer p-1"
+              aria-label="Kantong Belanja"
+              title="Kantong Belanja"
+            >
+              <ShoppingBag className="w-4 h-4 sm:w-[18px] sm:h-[18px] stroke-[1.75]" />
+              <span className="text-xs">
+                {totalCartItems > 0 ? `(${totalCartItems})` : ""}
+              </span>
+            </button>
+
+            {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className={`lg:hidden p-1.5 sm:p-2 rounded-lg sm:rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 ${
-                isMobileMenuOpen
-                  ? "bg-rose-50 text-rose-600 border-rose-300 shadow-xs"
-                  : "bg-stone-50 text-stone-700 border-stone-200 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
-              }`}
-              aria-label={isMobileMenuOpen ? "Tutup Menu Navigasi" : "Buka Menu Navigasi"}
+              className="lg:hidden p-1.5 text-[#292925] hover:text-[#87947B] transition cursor-pointer"
+              aria-label={isMobileMenuOpen ? "Tutup Navigasi" : "Buka Navigasi"}
               aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
-                <X className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600" />
+                <X className="w-5 h-5 stroke-[1.75]" />
               ) : (
-                <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-stone-800" />
+                <Menu className="w-5 h-5 stroke-[1.75]" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Mobile & Tablet Dropdown Menu (Attached cleanly beneath the navbar) */}
+        {/* Mobile Slide-Over Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 z-50 bg-white/98 backdrop-blur-md border-b border-stone-200/90 shadow-2xl animate-fade-in-down max-h-[calc(100vh-4rem)] overflow-y-auto">
-            <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-3">
-              {/* Customer status header in mobile menu */}
+          <div className="lg:hidden bg-[#FAF8F4] border-b border-[#EAE4DA] px-6 py-6 space-y-6 animate-fade-in shadow-editorial">
+            {/* Mobile Navigation Links */}
+            <div className="flex flex-col space-y-4 text-sm font-medium tracking-widest uppercase text-[#292925]">
+              <Link
+                href="/#katalog"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
+              >
+                Koleksi Produk
+              </Link>
+              <Link
+                href="/#concerns"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
+              >
+                Kebutuhan Kulit
+              </Link>
+              <Link
+                href="/#philosophy"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
+              >
+                Filosofi Kami
+              </Link>
+              <Link
+                href="/#ritual"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
+              >
+                Panduan Rutinitas
+              </Link>
+              <Link
+                href="/#loyalty"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#87947B] transition-colors py-1 border-b border-[#EAE4DA]"
+              >
+                Keanggotaan &amp; Reward
+              </Link>
+            </div>
+
+            {/* Mobile Auth Area */}
+            <div className="pt-2">
               {customer ? (
-                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                      {customer.name.slice(0, 2).toUpperCase()}
-                    </div>
+                <div className="p-4 bg-[#F5F1EB] border border-[#EAE4DA] space-y-3">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-bold text-xs text-stone-900 block">{customer.name}</span>
-                      <span className="text-[10px] text-stone-500 font-medium">
-                        {customer.loyaltyPoints || 0} Poin • Tier {customer.loyaltyTier || "SILVER"}
-                      </span>
+                      <p className="font-serif text-base font-medium text-[#292925]">{customer.name}</p>
+                      <p className="text-xs text-[#57564F]">{customer.email}</p>
                     </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#87947B] text-white rounded">
+                      {customer.loyaltyPoints || 0} Poin
+                    </span>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-rose-200"
+                    className="w-full text-left text-xs font-medium text-[#C99A91] hover:underline"
                   >
-                    <LogOut className="w-3 h-3" /> Logout
+                    Keluar Akun
                   </button>
                 </div>
               ) : (
@@ -373,115 +398,24 @@ export default function Navbar({ totalCartItems, onOpenCart }: NavbarProps) {
                     setAuthMode("login");
                     setIsAuthModalOpen(true);
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full py-3 bg-[#292925] text-white text-xs tracking-widest uppercase font-medium text-center hover:bg-[#1A1A18] transition"
                 >
-                  <User className="w-4 h-4" />
-                  <span>Login | Register Akun Customer</span>
+                  Masuk atau Daftar Akun
                 </button>
               )}
-
-              {/* Navigation Links Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                {[
-                  {
-                    href: "/#katalog",
-                    label: "Katalog Produk",
-                    desc: "Pilihan formula kulit & varian ml",
-                    icon: Compass,
-                  },
-                  {
-                    href: "/#loyalty",
-                    label: "Loyalty Poin & Reward",
-                    desc: "Kumpulkan poin diskon belanja",
-                    icon: Award,
-                  },
-                  {
-                    href: "/#edukasi",
-                    label: "Edukasi & Tips Kulit",
-                    desc: "Panduan dermatologi & tren 2026",
-                    icon: BookOpen,
-                  },
-                  {
-                    href: "/#faq",
-                    label: "Tanya Jawab (FAQ)",
-                    desc: "BPOM, pembayaran QRIS, & kurir",
-                    icon: HelpCircle,
-                  },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-rose-50/80 transition-all duration-200 text-stone-700 hover:text-rose-600 group border border-stone-100 hover:border-rose-200/70 bg-stone-50/50"
-                    >
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-white border border-stone-200/80 text-stone-600 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-600 flex items-center justify-center shrink-0 transition-colors shadow-2xs">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-xs sm:text-sm text-stone-900 group-hover:text-rose-600">
-                          {item.label}
-                        </div>
-                        <div className="text-[10px] sm:text-[11px] text-stone-400 truncate">
-                          {item.desc}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Mobile Quick Cart Button */}
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  onOpenCart();
-                }}
-                className="w-full flex items-center justify-between p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-50 border border-rose-200/90 text-rose-700 hover:bg-rose-100/70 transition cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4 text-rose-600" />
-                  <span className="font-bold text-xs sm:text-sm">Keranjang Belanja Anda</span>
-                </div>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600 text-white shadow-2xs">
-                  {totalCartItems} barang
-                </span>
-              </button>
-
-              {/* WhatsApp Help Action */}
-              <div className="pt-1">
-                <a
-                  href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20konsultasi%20produk"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs transition"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>WhatsApp CS Resmi</span>
-                </a>
-              </div>
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
-      {/* Global Backdrop for Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-[45] bg-stone-950/50 backdrop-blur-xs transition-opacity animate-fade-in lg:hidden cursor-pointer"
-          onClick={() => setIsMobileMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Customer Auth Modal (Login & Register) */}
+      {/* Customer Auth Modal */}
       <CustomerAuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
         initialMode={authMode}
+        onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => {
           fetchCustomer();
+          window.dispatchEvent(new Event("beautycare-customer-updated"));
         }}
       />
     </>

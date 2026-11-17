@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  Sparkles,
   Store,
   MessageCircle,
   MapPin,
@@ -21,8 +20,8 @@ import {
   Play,
   X,
   Heart,
-  ShoppingCart,
-  Zap,
+  ShoppingBag,
+  ArrowRight,
   ThumbsUp,
   Image as ImageIcon,
   Video as VideoIcon,
@@ -213,7 +212,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
         throw new Error(data.error || "Gagal mengirim ulasan.");
       }
 
-      setReviewSuccessMessage("Ulasan & penilaian produk Anda berhasil dikirim!");
+      setReviewSuccessMessage("Ulasan & evaluasi produk Anda berhasil dikirim!");
       if (data.review) {
         setReviewsList((prev) => [data.review, ...prev]);
       }
@@ -282,11 +281,10 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
     [reviews]
   );
 
-  // Gallery images (product image + review images/previews)
+  // Gallery images (product image + secondary views)
   const galleryImages = useMemo(() => {
     const list: string[] = [];
     if (product.image) list.push(product.image);
-    // secondary visual variants
     if (product.category.slug.includes("serum")) {
       list.push(
         "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&auto=format&fit=crop&q=80"
@@ -298,80 +296,82 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
       list.push(
         "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&auto=format&fit=crop&q=80"
       );
-      list.push(
-        "https://images.unsplash.com/photo-1643716991736-b83d4bf474b4?w=800&auto=format&fit=crop&q=80"
-      );
     }
     return list;
   }, [product]);
 
-  // Cart operations
+  // Cart Handlers
   const handleAddToCart = (
-    prod: Product = product,
-    variant: Variant | null = selectedVariant,
-    qty: number = quantity
+    prod: Product,
+    variant: Variant | null = null,
+    qty = 1
   ) => {
-    const itemPrice = variant ? variant.price : prod.price;
-    const vId = variant ? variant.id : null;
-    const vSize = variant ? variant.size : null;
+    const chosenVariant =
+      variant ||
+      (prod.hasVariants && prod.variants && prod.variants.length > 0
+        ? prod.variants[0]
+        : null);
+    const itemPrice = chosenVariant ? chosenVariant.price : prod.price;
+    const itemSize = chosenVariant ? chosenVariant.size : null;
+    const variantId = chosenVariant ? chosenVariant.id : null;
 
-    const existingIdx = cart.findIndex(
-      (it) => it.productId === prod.id && it.variantId === vId
+    const existingIndex = cart.findIndex(
+      (c) => c.productId === prod.id && c.variantId === variantId
     );
 
-    let nextCart: CartItem[];
-    if (existingIdx > -1) {
-      nextCart = [...cart];
-      nextCart[existingIdx] = {
-        ...nextCart[existingIdx],
-        quantity: nextCart[existingIdx].quantity + qty,
-      };
+    let updatedCart: CartItem[];
+    if (existingIndex > -1) {
+      updatedCart = [...cart];
+      updatedCart[existingIndex].quantity += qty;
     } else {
-      nextCart = [
+      updatedCart = [
         ...cart,
         {
           productId: prod.id,
           productName: prod.name,
           productImage: prod.image,
-          variantId: vId,
-          selectedSize: vSize,
+          variantId,
+          selectedSize: itemSize,
           price: itemPrice,
           quantity: qty,
         },
       ];
     }
-    saveStoredCart(nextCart);
-    showToast(`✓ Berhasil menambahkan ${qty}x ${prod.name} (${vSize || "Standard"}) ke keranjang!`);
+
+    saveStoredCart(updatedCart);
+    showToast(
+      `✓ ${qty}x ${prod.name} ${itemSize ? `(${itemSize})` : ""} ditambahkan ke kantong!`
+    );
   };
 
-  const handleOpenOrderModal = (prod: Product) => {
-    setOrderModalProduct(prod);
+  const handleUpdateCartQty = (index: number, newQty: number) => {
+    if (newQty <= 0) {
+      handleRemoveCartItem(index);
+      return;
+    }
+    const updated = [...cart];
+    updated[index].quantity = newQty;
+    saveStoredCart(updated);
   };
 
-  const handleDirectBuy = () => {
-    setOrderModalProduct(product);
+  const handleRemoveCartItem = (index: number) => {
+    const updated = cart.filter((_, i) => i !== index);
+    saveStoredCart(updated);
   };
 
   const totalCartPrice = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [cart]);
 
-  const handleUpdateCartQty = (idx: number, newQty: number) => {
-    if (newQty <= 0) {
-      handleRemoveCartItem(idx);
-      return;
-    }
-    const next = [...cart];
-    next[idx] = { ...next[idx], quantity: newQty };
-    saveStoredCart(next);
+  // Direct checkout
+  const handleDirectBuy = () => {
+    setOrderModalProduct(product);
   };
 
-  const handleRemoveCartItem = (idx: number) => {
-    const next = cart.filter((_, i) => i !== idx);
-    saveStoredCart(next);
-  };
-
-  const handleCartSubmitOrder = async (e: React.FormEvent) => {
+  const handleCartSubmitOrder = async (
+    e: React.FormEvent,
+    redeemPoints: number = 0
+  ) => {
     e.preventDefault();
     if (cart.length === 0) return;
     setOrderSubmitting(true);
@@ -387,11 +387,15 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
           customerEmail: customerEmail || null,
           customerAddress,
           paymentMethod,
+          paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
           notes: notes || null,
-          items: cart.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
+          redeemPoints,
+          items: cart.map((c) => ({
+            productId: c.productId,
+            variantId: c.variantId,
+            selectedSize: c.selectedSize,
+            quantity: c.quantity,
+            price: c.price,
           })),
         }),
       });
@@ -411,7 +415,10 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
     }
   };
 
-  const handleSingleOrderSubmit = async (e: React.FormEvent) => {
+  const handleSingleOrderSubmit = async (
+    e: React.FormEvent,
+    redeemPoints: number = 0
+  ) => {
     e.preventDefault();
     if (!orderModalProduct) return;
     setOrderSubmitting(true);
@@ -427,12 +434,16 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
           customerEmail: customerEmail || null,
           customerAddress,
           paymentMethod,
+          paymentChannel: paymentMethod === "QRIS" ? "QRIS All Payment" : paymentMethod,
           notes: notes || null,
+          redeemPoints,
           items: [
             {
               productId: orderModalProduct.id,
               variantId: selectedVariant?.id || null,
+              selectedSize: selectedVariant?.size || null,
               quantity: quantity,
+              price: currentPrice,
             },
           ],
         }),
@@ -453,8 +464,8 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
   };
 
   return (
-    <div className="min-h-screen bg-[#faf7f5] text-stone-900 font-sans antialiased">
-      {/* Navbar with reactive cart counter */}
+    <div className="min-h-screen bg-[#FAF8F4] text-[#292925] font-sans antialiased selection:bg-[#87947B]/20">
+      {/* Navbar with reactive bag counter */}
       <Navbar
         totalCartItems={totalCartItems}
         onOpenCart={() => setIsCartOpen(true)}
@@ -462,86 +473,79 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 sm:right-8 z-[70] bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-stone-700/50 flex items-center gap-2.5 text-xs sm:text-sm animate-bounce">
-          <Sparkles className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="fixed top-20 right-4 sm:right-6 z-[80] bg-[#292925] text-[#FAF8F4] px-4 py-3 rounded-sm shadow-editorial border border-[#33332D] flex items-center gap-2 text-xs font-sans animate-fade-in-up">
+          <CheckCircle2 className="w-4 h-4 text-[#87947B] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Breadcrumb Navigation */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-        <nav className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-stone-500 font-medium overflow-x-auto">
-          <Link href="/" className="hover:text-rose-600 transition shrink-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-[#EAE4DA]">
+        <nav className="flex items-center gap-2 text-xs text-[#292925]/60 font-sans overflow-x-auto">
+          <Link href="/" className="hover:text-[#292925] transition shrink-0">
             Beranda
           </Link>
-          <ChevronRight className="w-3 h-3 text-stone-400 shrink-0" />
+          <ChevronRight className="w-3 h-3 text-[#292925]/40 shrink-0" />
           <Link
-            href={`/#katalog`}
-            className="hover:text-rose-600 transition shrink-0"
+            href="/#katalog"
+            className="hover:text-[#292925] transition shrink-0"
           >
             {product.category.name}
           </Link>
-          <ChevronRight className="w-3 h-3 text-stone-400 shrink-0" />
-          <span className="text-stone-800 font-semibold truncate max-w-[200px] sm:max-w-md">
+          <ChevronRight className="w-3 h-3 text-[#292925]/40 shrink-0" />
+          <span className="text-[#292925] font-medium truncate max-w-[200px] sm:max-w-md">
             {product.name}
           </span>
         </nav>
       </div>
 
       {/* Main Product Showcase Section */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-          {/* LEFT: Image Gallery with Interactive 3D Card and Thumbnails */}
-          <div className="lg:col-span-5 space-y-3 sm:space-y-4">
-            <div className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-stone-100 to-rose-50/30 border border-stone-200/80 shadow-3d-card group transform-style-3d perspective-1000 hover:shadow-3d-card-hover transition-all duration-500">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+          {/* LEFT: Editorial Image Gallery */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="relative aspect-square bg-[#EAE4DA] border border-[#EAE4DA] overflow-hidden rounded-sm">
               <img
                 src={galleryImages[activeImageIndex] || product.image || ""}
                 alt={product.name}
-                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
+                className="w-full h-full object-cover object-center"
               />
 
-              {/* Shimmer Light Sweeping Accent */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                <div className="w-[80%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-25deg] animate-shimmer-light" />
-              </div>
-
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                <span className="px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full bg-white/95 backdrop-blur-xs text-stone-800 shadow-xs border border-stone-100 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                <span className="px-3 py-1 text-[10px] font-medium uppercase tracking-wider bg-white/95 text-[#292925] border border-[#EAE4DA] flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#87947B]" />
                   BPOM Terverifikasi
                 </span>
-                <span className="px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full bg-rose-600 text-white shadow-xs">
+                <span className="px-3 py-1 text-[10px] font-medium uppercase tracking-wider bg-[#292925] text-[#FAF8F4]">
                   {product.category.name}
                 </span>
               </div>
 
               <button
                 onClick={() => setIsLiked(!isLiked)}
-                className={`absolute top-3 right-3 p-2.5 rounded-full backdrop-blur-xs transition shadow-xs cursor-pointer ${
+                className={`absolute top-4 right-4 p-2.5 rounded-full border border-[#EAE4DA] transition cursor-pointer ${
                   isLiked
-                    ? "bg-rose-50 text-rose-600"
-                    : "bg-white/80 text-stone-600 hover:text-rose-600 hover:bg-white"
+                    ? "bg-[#FAF8F4] text-[#C99A91]"
+                    : "bg-white/80 text-[#292925] hover:bg-white"
                 }`}
-                aria-label="Wishlist"
+                aria-label="Simpan ke Wishlist"
               >
                 <Heart
-                  className={`w-4 h-4 ${
-                    isLiked ? "fill-rose-600 text-rose-600" : ""
-                  }`}
+                  className={`w-4 h-4 ${isLiked ? "fill-[#C99A91] text-[#C99A91]" : ""}`}
                 />
               </button>
             </div>
 
-            {/* Thumbnail Carousel Strip */}
-            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1">
+            {/* Thumbnail Strip */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-1">
               {galleryImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 border transition shrink-0 cursor-pointer overflow-hidden ${
                     activeImageIndex === idx
-                      ? "border-rose-500 shadow-sm scale-102"
-                      : "border-stone-200 hover:border-stone-300 opacity-70 hover:opacity-100"
+                      ? "border-[#292925] ring-1 ring-[#292925]"
+                      : "border-[#EAE4DA] opacity-70 hover:opacity-100"
                   }`}
                 >
                   <img
@@ -554,157 +558,121 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
             </div>
 
             {/* Guarantees Box */}
-            <div className="p-3 sm:p-4 rounded-2xl bg-white border border-stone-200/80 grid grid-cols-3 gap-2 text-center text-[10px] sm:text-xs text-stone-600">
+            <div className="p-4 bg-white border border-[#EAE4DA] grid grid-cols-3 gap-2 text-center text-xs text-[#292925]/75 font-sans rounded-sm">
               <div className="flex flex-col items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span className="font-bold text-stone-800">100% Original</span>
-                <span className="text-[9px] text-stone-400">Garansi Pabrik</span>
+                <ShieldCheck className="w-4 h-4 text-[#87947B]" />
+                <span className="font-medium text-[#292925]">100% Asli</span>
+                <span className="text-[10px] text-[#292925]/50">Terdaftar BPOM</span>
               </div>
-              <div className="flex flex-col items-center gap-1 border-x border-stone-100">
-                <Truck className="w-4 h-4 text-rose-600" />
-                <span className="font-bold text-stone-800">Gratis Ongkir</span>
-                <span className="text-[9px] text-stone-400">Seluruh Wilayah</span>
+              <div className="flex flex-col items-center gap-1 border-x border-[#EAE4DA]">
+                <Truck className="w-4 h-4 text-[#87947B]" />
+                <span className="font-medium text-[#292925]">Pengiriman Aman</span>
+                <span className="text-[10px] text-[#292925]/50">Segel Temperatur</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <RotateCcw className="w-4 h-4 text-blue-600" />
-                <span className="font-bold text-stone-800">Garansi 7 Hari</span>
-                <span className="text-[9px] text-stone-400">Uang Kembali</span>
+                <RotateCcw className="w-4 h-4 text-[#87947B]" />
+                <span className="font-medium text-[#292925]">Faktur Legal</span>
+                <span className="text-[10px] text-[#292925]/50">Invoice Otomatis</span>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Product Information, Seller Card, Variant Selection */}
-          <div className="lg:col-span-7 space-y-4 sm:space-y-6">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-stone-900 tracking-tight leading-snug">
+          {/* RIGHT: Product Information, Formulations, Selection */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-2 border-b border-[#EAE4DA] pb-6">
+              <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B] block">
+                {product.category.name}
+              </span>
+
+              <h1 className="font-serif text-2xl sm:text-4xl text-[#292925] tracking-tight leading-tight">
                 {product.name}
               </h1>
 
-              {/* Rating & Review Header Snippet */}
-              <div className="mt-2.5 flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-stone-600">
-                <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60 font-bold text-amber-700">
-                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  <span>{avgRating}</span>
+              {/* Rating & Stock Status */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[#292925]/70 font-sans pt-1">
+                <div className="flex items-center gap-1 text-[#87947B]">
+                  <Star className="w-3.5 h-3.5 fill-[#87947B] text-[#87947B]" />
+                  <span className="font-semibold text-[#292925]">{avgRating}</span>
                 </div>
-                <a
-                  href="#ulasan"
-                  className="text-stone-500 hover:text-rose-600 underline font-medium"
-                >
-                  {reviewCount} Penilaian Pembeli
+                <span>•</span>
+                <a href="#ulasan" className="underline hover:text-[#292925]">
+                  {reviewCount} Evaluasi Pembeli
                 </a>
-                <span className="text-stone-300">•</span>
-                <span className="text-stone-500">
-                  <strong className="text-stone-800">150+</strong> Produk Terjual
-                </span>
-                <span className="text-stone-300">•</span>
-                <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50">
-                  Stok: {currentStock > 0 ? `${currentStock} pcs siap kirim` : "Habis"}
+                <span>•</span>
+                <span className="text-[#87947B] font-medium">
+                  {currentStock > 0 ? `${currentStock} botol siap kirim` : "Habis"}
                 </span>
               </div>
             </div>
 
             {/* Dynamic Price Display */}
-            <div className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-50/80 via-pink-50/40 to-stone-50 border border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-[10px] sm:text-xs font-semibold text-rose-700 uppercase tracking-wider block">
-                  Harga Spesial BeautyCare
+            <div className="p-5 bg-white border border-[#EAE4DA] rounded-sm space-y-2">
+              <span className="text-[10px] font-semibold tracking-[0.15em] uppercase text-[#87947B] block font-sans">
+                Harga Formulasi
+              </span>
+              <div className="flex items-baseline gap-3">
+                <span className="font-serif text-3xl font-bold text-[#292925]">
+                  {formatRupiah(currentPrice)}
                 </span>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-2xl sm:text-3xl font-black text-rose-600 font-mono tracking-tight">
-                    {formatRupiah(currentPrice)}
-                  </span>
-                  <span className="text-xs sm:text-sm text-stone-400 line-through">
-                    {formatRupiah(currentPrice * 1.25)}
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded">
-                    Hemat 20%
-                  </span>
-                </div>
+                <span className="text-xs text-[#292925]/50 line-through">
+                  {formatRupiah(currentPrice * 1.2)}
+                </span>
               </div>
+              <p className="text-[11px] text-[#292925]/60 font-sans">
+                Termasuk PPN &amp; perolehan <strong className="text-[#292925]">+{potentialPoints} poin loyalty</strong> (diskon {formatRupiah(potentialDiscount)} pesanan berikutnya).
+              </p>
+            </div>
 
-              {/* Loyalty Reward Preview */}
-              <div className="bg-white/90 p-2.5 sm:p-3 rounded-xl border border-rose-200/70 shadow-2xs text-[11px] sm:text-xs flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
+            {/* Seller / Atelier Card */}
+            <div className="p-4 bg-[#EAE4DA]/30 border border-[#EAE4DA] rounded-sm flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-sm bg-[#292925] text-[#FAF8F4] flex items-center justify-center shrink-0">
+                  <Store className="w-5 h-5 text-[#87947B]" />
+                </div>
                 <div>
-                  <span className="font-bold text-stone-800 block">
-                    +{potentialPoints} Poin Loyalty
-                  </span>
-                  <span className="text-[10px] text-stone-500">
-                    Diskon {formatRupiah(potentialDiscount)} belanja berikutnya
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* SELLER CARD: "Akun yang Menjual atau Penjual dari Produk Tersebut" */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:border-rose-300 transition">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
-                    <Store className="w-6 h-6 text-white" />
-                    <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" title="Online" />
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-xs sm:text-sm text-[#292925]">
+                      {product.sellerName || "BeautyCare Atelier & Formulary"}
+                    </h4>
+                    <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-[#87947B]/20 text-[#87947B]">
+                      Verified
+                    </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-extrabold text-xs sm:text-sm text-stone-900">
-                        {product.sellerName || "BeautyCare Official Store"}
-                      </h4>
-                      <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 flex items-center gap-0.5">
-                        <Award className="w-3 h-3 text-rose-600" />
-                        {product.sellerBadge || "Official Store Terverifikasi"}
-                      </span>
-                    </div>
-
-                    <div className="mt-1 flex flex-wrap items-center gap-3 text-[10px] sm:text-xs text-stone-500">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <strong className="text-stone-800">
-                          {product.sellerRating || "4.9 / 5.0"}
-                        </strong>{" "}
-                        (Rating Toko)
-                      </span>
-                      <span className="text-stone-300">•</span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-rose-500" />
-                        {product.sellerCity || "Jakarta Selatan"}
-                      </span>
-                      <span className="text-stone-300">•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-emerald-600" />
-                        Respon: {product.sellerResponse || "± 5 Menit"}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-3 text-[11px] text-[#292925]/60 mt-0.5 font-sans">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-[#87947B]" />
+                      {product.sellerCity || "Denpasar, Bali"}
+                    </span>
+                    <span>•</span>
+                    <span>Respon ± 5 mnt</span>
                   </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-1.5 shrink-0">
-                  <a
-                    href={`https://wa.me/6281234567890?text=Halo%20BeautyCare,%20saya%20ingin%20bertanya%20tentang%20produk%20${encodeURIComponent(
-                      product.name
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1 transition"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>Chat Penjual</span>
-                  </a>
-                </div>
               </div>
+
+              <a
+                href={`https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20bertanya%20tentang%20formulasi%20${encodeURIComponent(
+                  product.name
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 border border-[#292925] text-[#292925] hover:bg-[#292925] hover:text-[#FAF8F4] text-xs font-medium transition cursor-pointer shrink-0"
+              >
+                Konsultasi
+              </a>
             </div>
 
-            {/* VARIANT SELECTOR: ML SIZES (30ml, 50ml, 100ml) */}
+            {/* VARIANT SELECTOR: ML SIZES */}
             {product.hasVariants && product.variants.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-bold text-stone-800">
-                    Pilih Varian Ukuran (ml):
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-sans">
+                  <span className="font-medium text-[#292925]">
+                    Pilih Kemasan (ml):
                   </span>
-                  <span className="text-[10px] sm:text-xs text-rose-600 font-semibold">
+                  <span className="text-[#87947B] font-mono">
                     {selectedVariant?.size || "Pilih satu"}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   {product.variants.map((v) => {
                     const isSelected = selectedVariant?.id === v.id;
                     return (
@@ -712,25 +680,25 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                         key={v.id}
                         type="button"
                         onClick={() => setSelectedVariant(v)}
-                        className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        className={`p-3 border text-left transition-all cursor-pointer rounded-sm ${
                           isSelected
-                            ? "bg-rose-50 border-rose-500 text-rose-900 shadow-sm"
-                            : "bg-white border-stone-200 hover:border-stone-300 text-stone-700"
+                            ? "bg-white border-[#292925] ring-1 ring-[#292925]"
+                            : "bg-[#FAF8F4] border-[#EAE4DA] hover:border-[#87947B]"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-xs sm:text-sm">
+                          <span className="font-mono text-xs font-bold text-[#292925]">
                             {v.size}
                           </span>
                           {isSelected && (
-                            <CheckCircle className="w-3.5 h-3.5 text-rose-600" />
+                            <CheckCircle className="w-3.5 h-3.5 text-[#87947B]" />
                           )}
                         </div>
-                        <span className="text-[10px] sm:text-xs font-mono font-bold block mt-0.5 text-stone-900">
+                        <span className="text-xs font-serif font-semibold text-[#292925] block mt-1">
                           {formatRupiah(v.price)}
                         </span>
-                        <span className="text-[9px] text-stone-400 block">
-                          Sisa {v.stock} pcs
+                        <span className="text-[10px] text-[#292925]/50 block font-sans">
+                          Stok: {v.stock}
                         </span>
                       </button>
                     );
@@ -740,120 +708,117 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
             )}
 
             {/* QUANTITY & ACTIONS */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               <div className="flex items-center gap-4">
-                <span className="text-xs sm:text-sm font-bold text-stone-800">
+                <span className="text-xs font-medium text-[#292925] font-sans">
                   Jumlah:
                 </span>
-                <div className="flex items-center border border-stone-200 rounded-xl bg-white overflow-hidden shadow-2xs">
+                <div className="flex items-center border border-[#EAE4DA] bg-white rounded-sm">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-100 disabled:opacity-30 cursor-pointer font-bold"
+                    className="px-3 py-1.5 text-[#292925] hover:bg-[#EAE4DA]/50 disabled:opacity-30 cursor-pointer font-bold text-xs"
                   >
                     -
                   </button>
-                  <span className="px-4 py-1.5 font-bold text-xs sm:text-sm font-mono">
+                  <span className="px-4 py-1.5 text-xs font-mono font-medium">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
                     disabled={quantity >= currentStock}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-100 disabled:opacity-30 cursor-pointer font-bold"
+                    className="px-3 py-1.5 text-[#292925] hover:bg-[#EAE4DA]/50 disabled:opacity-30 cursor-pointer font-bold text-xs"
                   >
                     +
                   </button>
                 </div>
-                <span className="text-[10px] sm:text-xs text-stone-400">
-                  Subtotal:{" "}
-                  <strong className="text-stone-900 font-mono">
-                    {formatRupiah(currentPrice * quantity)}
-                  </strong>
+                <span className="text-xs text-[#292925]/60 font-sans">
+                  Total: <strong className="text-[#292925]">{formatRupiah(currentPrice * quantity)}</strong>
                 </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => handleAddToCart(product, selectedVariant, quantity)}
                   disabled={currentStock === 0}
-                  className="w-full py-3 sm:py-3.5 rounded-xl sm:rounded-2xl border-2 border-rose-500 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 border border-[#292925] text-[#292925] hover:bg-[#EAE4DA]/40 font-medium text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <ShoppingCart className="w-4 h-4 text-rose-600" />
-                  <span>+ Keranjang</span>
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>+ Kantong</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleDirectBuy}
                   disabled={currentStock === 0}
-                  className="w-full py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold text-xs sm:text-sm transition shadow-md shadow-rose-600/30 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer disabled:opacity-50 active:scale-98"
+                  className="w-full py-3.5 bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] font-medium text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <Zap className="w-4 h-4 fill-white" />
-                  <span>Beli Sekarang</span>
+                  <span>Pesan Sekarang</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* TABBED DETAILS: Description, Ingredients, Safety */}
-            <div className="pt-4 border-t border-stone-200">
-              <div className="flex border-b border-stone-200 gap-4 sm:gap-6 text-xs sm:text-sm font-bold">
+            {/* TABBED DETAILS */}
+            <div className="pt-6 border-t border-[#EAE4DA]">
+              <div className="flex border-b border-[#EAE4DA] gap-6 text-xs font-sans">
                 <button
                   onClick={() => setActiveTab("desc")}
-                  className={`pb-2.5 transition relative cursor-pointer ${
+                  className={`pb-3 transition relative cursor-pointer font-medium tracking-wide ${
                     activeTab === "desc"
-                      ? "text-rose-600 border-b-2 border-rose-600"
-                      : "text-stone-500 hover:text-stone-900"
+                      ? "text-[#292925] border-b-2 border-[#292925]"
+                      : "text-[#292925]/50 hover:text-[#292925]"
                   }`}
                 >
                   Deskripsi &amp; Manfaat
                 </button>
                 <button
                   onClick={() => setActiveTab("ingredients")}
-                  className={`pb-2.5 transition relative cursor-pointer ${
+                  className={`pb-3 transition relative cursor-pointer font-medium tracking-wide ${
                     activeTab === "ingredients"
-                      ? "text-rose-600 border-b-2 border-rose-600"
-                      : "text-stone-500 hover:text-stone-900"
+                      ? "text-[#292925] border-b-2 border-[#292925]"
+                      : "text-[#292925]/50 hover:text-[#292925]"
                   }`}
                 >
                   Kandungan &amp; Cara Pakai
                 </button>
                 <button
                   onClick={() => setActiveTab("safety")}
-                  className={`pb-2.5 transition relative cursor-pointer ${
+                  className={`pb-3 transition relative cursor-pointer font-medium tracking-wide ${
                     activeTab === "safety"
-                      ? "text-rose-600 border-b-2 border-rose-600"
-                      : "text-stone-500 hover:text-stone-900"
+                      ? "text-[#292925] border-b-2 border-[#292925]"
+                      : "text-[#292925]/50 hover:text-[#292925]"
                   }`}
                 >
-                  Sertifikasi &amp; Keamanan
+                  Sertifikasi BPOM
                 </button>
               </div>
 
-              <div className="py-4 text-xs sm:text-sm text-stone-600 leading-relaxed">
+              <div className="py-5 text-xs text-[#292925]/75 leading-relaxed font-sans">
                 {activeTab === "desc" && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <p>{product.description}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                      <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
-                        <span className="font-bold text-stone-900 block text-xs">
-                          ✨ Manfaat Utama:
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <div className="p-3.5 bg-white border border-[#EAE4DA] rounded-sm space-y-1">
+                        <span className="font-medium text-[#292925] block">
+                          Fokus Formulasi:
                         </span>
-                        <ul className="list-disc list-inside text-stone-600 text-[11px] sm:text-xs mt-1 space-y-1">
-                          <li>Menenangkan kemerahan dan iritasi kulit</li>
+                        <ul className="list-disc list-inside text-[#292925]/70 space-y-0.5">
+                          <li>Menguatkan lipid barrier kulit sensitif</li>
                           <li>Mengunci kelembapan hingga 48 jam</li>
-                          <li>Mempercepat regenerasi skin barrier alami</li>
+                          <li>Menyeimbangkan mikrobioma alami</li>
                         </ul>
                       </div>
-                      <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/80">
-                        <span className="font-bold text-stone-900 block text-xs">
-                          🎯 Cocok Untuk Jenis Kulit:
+                      <div className="p-3.5 bg-white border border-[#EAE4DA] rounded-sm space-y-1">
+                        <span className="font-medium text-[#292925] block">
+                          Kesesuaian Tipe Kulit:
                         </span>
-                        <p className="text-[11px] sm:text-xs text-stone-600 mt-1">
-                          Kulit kering, sensitif, berjerawat ringan, kombinasi, dan aman untuk ibu hamil &amp; menyusui.
+                        <p className="text-[#292925]/70">
+                          Sangat direkomendasikan untuk kulit kering, dehidrasi, kombinasi, dan aman untuk ibu hamil &amp; menyusui.
                         </p>
                       </div>
                     </div>
@@ -861,54 +826,52 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                 )}
 
                 {activeTab === "ingredients" && (
-                  <div className="space-y-3">
-                    <div>
-                      <h5 className="font-bold text-stone-900 text-xs sm:text-sm mb-1">
-                        Kandungan Aktif Unggulan:
+                  <div className="space-y-4">
+                    <div className="p-3.5 bg-white border border-[#EAE4DA] rounded-sm space-y-1.5">
+                      <h5 className="font-medium text-[#292925]">
+                        Kandungan Aktif &amp; Botani:
                       </h5>
-                      <p className="text-[11px] sm:text-xs text-stone-600">
-                        Water, Niacinamide 5%, Ceramide NP, Centella Asiatica Leaf Extract, Sodium Hyaluronate 4D, Panthenol (Pro-Vitamin B5), Glycerin, Tocopherol, Phenoxyethanol.
+                      <p className="text-[11px] text-[#292925]/70 font-mono leading-relaxed">
+                        Aqua (Water), Niacinamide 5%, Ceramide NP, Centella Asiatica Extract, Sodium Hyaluronate Multi-Molecular, Panthenol (Pro-Vit B5), Vegetable Glycerin, Tocopherol.
                       </p>
                     </div>
-                    <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-100">
-                      <h5 className="font-bold text-rose-900 text-xs sm:text-sm mb-1">
-                        Petunjuk Pemakaian Harian:
+                    <div className="p-3.5 bg-[#EAE4DA]/30 border border-[#EAE4DA] rounded-sm space-y-1.5">
+                      <h5 className="font-medium text-[#292925]">
+                        Petunjuk Ritual Pemakaian:
                       </h5>
-                      <ol className="list-decimal list-inside text-[11px] sm:text-xs text-rose-800 space-y-1">
-                        <li>Bersihkan wajah dengan cleanser lembut BeautyCare.</li>
-                        <li>Teteskan 2-3 tetes serum secara merata pada wajah dan leher.</li>
-                        <li>Tepuk-tepuk perlahan hingga meresap sempurna sebelum pelembap.</li>
-                        <li>Gunakan pagi dan malam hari untuk hasil optimal.</li>
+                      <ol className="list-decimal list-inside text-[11px] text-[#292925]/70 space-y-1">
+                        <li>Gunakan setelah membersihkan wajah dan mengaplikasikan toner.</li>
+                        <li>Teteskan 2-3 tetes formula secara merata pada wajah dan leher.</li>
+                        <li>Tepuk perlahan hingga meresap sempurna sebelum menggunakan pelembap.</li>
+                        <li>Dapat digunakan pada pagi dan malam hari.</li>
                       </ol>
                     </div>
                   </div>
                 )}
 
                 {activeTab === "safety" && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-emerald-900">
-                        <span className="font-bold text-xs sm:text-sm block">
-                          No. Registrasi BPOM RI
-                        </span>
-                        <span className="font-mono text-xs font-extrabold block mt-0.5">
-                          NA18230104829
-                        </span>
-                        <span className="text-[10px] text-emerald-700 mt-0.5 block">
-                          Resmi terdaftar di Badan Pengawas Obat dan Makanan
-                        </span>
-                      </div>
-                      <div className="p-3 rounded-xl bg-purple-50/80 border border-purple-200 text-purple-900">
-                        <span className="font-bold text-xs sm:text-sm block">
-                          Sertifikasi Halal MUI
-                        </span>
-                        <span className="font-mono text-xs font-extrabold block mt-0.5">
-                          ID00110000452391022
-                        </span>
-                        <span className="text-[10px] text-purple-700 mt-0.5 block">
-                          100% Bebas Paraben, Cruelty-Free, Non-Comedogenic
-                        </span>
-                      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-4 bg-white border border-[#EAE4DA] rounded-sm space-y-1">
+                      <span className="font-semibold text-xs text-[#292925] block">
+                        No. Registrasi BPOM RI
+                      </span>
+                      <span className="font-mono text-xs font-bold text-[#87947B] block">
+                        NA18230104829
+                      </span>
+                      <span className="text-[11px] text-[#292925]/60 block">
+                        Teruji klinis aman, bebas steroid, merkuri, dan hidrokuinon.
+                      </span>
+                    </div>
+                    <div className="p-4 bg-white border border-[#EAE4DA] rounded-sm space-y-1">
+                      <span className="font-semibold text-xs text-[#292925] block">
+                        Sertifikasi Halal MUI
+                      </span>
+                      <span className="font-mono text-xs font-bold text-[#87947B] block">
+                        ID00110000452391022
+                      </span>
+                      <span className="text-[11px] text-[#292925]/60 block">
+                        100% Bebas Paraben sintetis, Cruelty-Free, &amp; Non-Comedogenic.
+                      </span>
                     </div>
                   </div>
                 )}
@@ -917,58 +880,48 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
           </div>
         </div>
 
-        {/* SECTION: BUYER REVIEWS & DOCUMENTATION (Bintang & Foto / Video Pembeli) */}
-        <section id="ulasan" className="mt-12 sm:mt-16 pt-8 border-t border-stone-200">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-bold text-rose-600 uppercase tracking-wider block">
-                  Ulasan &amp; Bukti Nyata Pembeli
-                </span>
-                {customer && customer.purchasedProductIds?.includes(product.id) && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    Verified Buyer
-                  </span>
-                )}
-              </div>
-              <h2 className="text-xl sm:text-2xl font-black text-stone-900 mt-0.5">
-                Dokumentasi Pembeli &amp; Penilaian Bintang
+        {/* SECTION: BUYER REVIEWS & CLINICAL FEEDBACK */}
+        <section id="ulasan" className="mt-16 sm:mt-24 pt-10 border-t border-[#EAE4DA]">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B] block">
+                Evaluasi Pembeli
+              </span>
+              <h2 className="font-serif text-2xl sm:text-3xl text-[#292925]">
+                Catatan Pengalaman Pengguna
               </h2>
-              <p className="text-xs text-stone-500 mt-1">
-                Penilaian produk hanya dapat diberikan oleh customer yang telah membeli produk ini untuk menjaga keaslian ulasan.
+              <p className="text-xs text-[#292925]/70 font-sans">
+                Penilaian produk hanya dapat diberikan oleh akun yang telah menyelesaikan pembelian formulasi ini.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Tombol Tulis Penilaian */}
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={handleOpenWriteReview}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs hover:shadow-md transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="px-4 py-2 bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] text-xs font-medium uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <Star className="w-3.5 h-3.5 fill-white text-white" />
-                <span>Tulis Penilaian Produk</span>
+                <Star className="w-3.5 h-3.5 fill-[#FAF8F4]" />
+                <span>Tulis Penilaian</span>
               </button>
 
-              {/* Filter Buttons */}
-              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 bg-stone-100 p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-white border border-[#EAE4DA] p-1 rounded-sm">
                 <button
                   onClick={() => setReviewFilter("ALL")}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1 text-xs transition cursor-pointer ${
                     reviewFilter === "ALL"
-                      ? "bg-white text-stone-900 shadow-2xs"
-                      : "text-stone-600 hover:text-stone-900"
+                      ? "bg-[#292925] text-[#FAF8F4]"
+                      : "text-[#292925]/70 hover:text-[#292925]"
                   }`}
                 >
                   Semua ({reviews.length})
                 </button>
                 <button
                   onClick={() => setReviewFilter("MEDIA")}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
+                  className={`px-3 py-1 text-xs transition cursor-pointer flex items-center gap-1 ${
                     reviewFilter === "MEDIA"
-                      ? "bg-white text-stone-900 shadow-2xs"
-                      : "text-stone-600 hover:text-stone-900"
+                      ? "bg-[#292925] text-[#FAF8F4]"
+                      : "text-[#292925]/70 hover:text-[#292925]"
                   }`}
                 >
                   <VideoIcon className="w-3 h-3" />
@@ -976,13 +929,13 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                 </button>
                 <button
                   onClick={() => setReviewFilter("5_STAR")}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer ${
+                  className={`px-3 py-1 text-xs transition cursor-pointer ${
                     reviewFilter === "5_STAR"
-                      ? "bg-white text-stone-900 shadow-2xs"
-                      : "text-stone-600 hover:text-stone-900"
+                      ? "bg-[#292925] text-[#FAF8F4]"
+                      : "text-[#292925]/70 hover:text-[#292925]"
                   }`}
                 >
-                  ⭐ 5
+                  ★ 5
                 </button>
               </div>
             </div>
@@ -990,24 +943,17 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
           {/* DOKUMENTASI MEDIA GALLERY (FOTO & VIDEO PEMBELI) */}
           {mediaReviews.length > 0 && (
-            <div className="mb-8 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-stone-200/90 shadow-2xs">
-              <div className="flex items-center justify-between mb-3.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center">
-                    <VideoIcon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-xs sm:text-sm text-stone-900">
-                      Galeri Foto &amp; Video Asli Pembeli
-                    </h3>
-                    <p className="text-[10px] text-stone-500">
-                      Klik untuk menonton video pemakaian atau melihat foto tekstur produk dari pembeli
-                    </p>
-                  </div>
-                </div>
+            <div className="mb-8 p-5 bg-white border border-[#EAE4DA] rounded-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif text-base text-[#292925]">
+                  Galeri Foto &amp; Tekstur Produk dari Pembeli
+                </h3>
+                <span className="text-[11px] text-[#292925]/60 font-sans">
+                  Klik untuk melihat pratinjau penuh
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {mediaReviews.map((rev) => (
                   <div
                     key={rev.id}
@@ -1019,7 +965,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                         comment: rev.comment,
                       })
                     }
-                    className="group relative aspect-square rounded-xl overflow-hidden bg-stone-900 border border-stone-200 shadow-2xs cursor-pointer hover:scale-103 transition-transform"
+                    className="group relative aspect-square border border-[#EAE4DA] overflow-hidden bg-[#292925] cursor-pointer"
                   >
                     {rev.mediaType === "video" ? (
                       <>
@@ -1029,29 +975,21 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                           muted
                           preload="metadata"
                         />
-                        <div className="absolute inset-0 bg-stone-900/30 flex items-center justify-center">
-                          <div className="w-9 h-9 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
-                            <Play className="w-4 h-4 fill-white ml-0.5" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-[#FAF8F4]/90 text-[#292925] flex items-center justify-center shadow-sm">
+                            <Play className="w-3.5 h-3.5 fill-[#292925] ml-0.5" />
                           </div>
                         </div>
-                        <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold flex items-center gap-1">
-                          <VideoIcon className="w-2.5 h-2.5" /> Video
-                        </span>
                       </>
                     ) : (
-                      <>
-                        <img
-                          src={rev.mediaUrl || ""}
-                          alt={`Reviewer ${rev.reviewerName}`}
-                          className="w-full h-full object-cover group-hover:scale-108 transition duration-300"
-                        />
-                        <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[9px] font-bold flex items-center gap-1">
-                          <ImageIcon className="w-2.5 h-2.5" /> Foto
-                        </span>
-                      </>
+                      <img
+                        src={rev.mediaUrl || ""}
+                        alt={`Reviewer ${rev.reviewerName}`}
+                        className="w-full h-full object-cover group-hover:scale-104 transition duration-500"
+                      />
                     )}
-                    <span className="absolute top-1.5 right-1.5 text-[9px] text-white font-bold bg-black/60 px-1 rounded">
-                      ⭐ {rev.rating}
+                    <span className="absolute top-1.5 right-1.5 text-[9px] text-[#FAF8F4] bg-[#292925]/80 px-1 font-mono">
+                      ★ {rev.rating}
                     </span>
                   </div>
                 ))}
@@ -1060,58 +998,53 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
           )}
 
           {/* LIST REVIEW DETAIL */}
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-4">
             {filteredReviews.length === 0 ? (
-              <div className="p-8 text-center bg-white rounded-2xl border border-stone-200 text-stone-400 text-xs">
+              <div className="p-8 text-center bg-white border border-[#EAE4DA] text-[#292925]/50 text-xs font-sans rounded-sm">
                 Belum ada ulasan untuk filter ini.
               </div>
             ) : (
               filteredReviews.map((rev) => (
                 <div
                   key={rev.id}
-                  className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200/80 shadow-2xs space-y-2.5"
+                  className="p-5 sm:p-6 bg-white border border-[#EAE4DA] rounded-sm space-y-3 font-sans"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-400 to-pink-500 text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
-                        {rev.reviewerName.slice(0, 2)}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs sm:text-sm text-[#292925]">
+                          {rev.reviewerName}
+                        </span>
+                        <span className="text-[10px] text-[#87947B] font-mono uppercase bg-[#87947B]/15 px-1.5 py-0.2">
+                          Verified Buyer
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-extrabold text-xs sm:text-sm text-stone-900">
-                            {rev.reviewerName}
-                          </span>
-                          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/50">
-                            Pembeli Terverifikasi
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] text-stone-400 mt-0.5">
-                          <span>{rev.userLocation || "Indonesia"}</span>
-                          <span>•</span>
-                          <span>Varian: {rev.selectedVariant || "Standar"}</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-[11px] text-[#292925]/50 font-sans">
+                        <span>{rev.userLocation || "Indonesia"}</span>
+                        <span>•</span>
+                        <span>Varian: {rev.selectedVariant || "Standar"}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-0.5 text-amber-400">
+                    <div className="flex items-center gap-0.5 text-[#87947B]">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
                           className={`w-3.5 h-3.5 ${
                             i < rev.rating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-stone-200"
+                              ? "fill-[#87947B] text-[#87947B]"
+                              : "text-[#EAE4DA]"
                           }`}
                         />
                       ))}
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#292925]/80 leading-relaxed">
                     {rev.comment}
                   </p>
 
-                  {/* Attached Media */}
+                  {/* Attached Media Thumbnail */}
                   {rev.mediaUrl && (
                     <div className="pt-1">
                       <button
@@ -1124,32 +1057,32 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                             comment: rev.comment,
                           })
                         }
-                        className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-stone-200 bg-stone-900 group cursor-pointer"
+                        className="relative w-20 h-20 border border-[#EAE4DA] overflow-hidden bg-[#292925] cursor-pointer"
                       >
                         {rev.mediaType === "video" ? (
                           <>
                             <video
                               src={rev.mediaUrl}
-                              className="w-full h-full object-cover opacity-75 group-hover:opacity-100 transition"
+                              className="w-full h-full object-cover opacity-75"
                               muted
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/25">
-                              <Play className="w-5 h-5 text-white fill-white" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <Play className="w-4 h-4 text-white fill-white" />
                             </div>
                           </>
                         ) : (
                           <img
                             src={rev.mediaUrl}
                             alt="Dokumentasi ulasan"
-                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                            className="w-full h-full object-cover"
                           />
                         )}
                       </button>
                     </div>
                   )}
 
-                  <div className="pt-1 flex items-center gap-4 text-[10px] sm:text-xs text-stone-400">
-                    <button className="flex items-center gap-1 hover:text-rose-600 transition cursor-pointer">
+                  <div className="pt-2 flex items-center gap-4 text-[11px] text-[#292925]/50 border-t border-[#EAE4DA]/50">
+                    <button className="flex items-center gap-1 hover:text-[#292925] transition cursor-pointer">
                       <ThumbsUp className="w-3 h-3" />
                       <span>Membantu ({rev.helpfulCount})</span>
                     </button>
@@ -1162,23 +1095,23 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
         {/* RELATED PRODUCTS */}
         {relatedProducts.length > 0 && (
-          <section className="mt-14 sm:mt-18 pt-8 border-t border-stone-200">
-            <div className="mb-6">
-              <span className="text-[10px] sm:text-xs font-bold text-rose-600 uppercase tracking-wider block">
-                Rekomendasi Terbaik
+          <section className="mt-16 sm:mt-24 pt-10 border-t border-[#EAE4DA]">
+            <div className="mb-8 space-y-1">
+              <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B] block">
+                Formulasi Komplementer
               </span>
-              <h3 className="text-lg sm:text-xl font-black text-stone-900 mt-0.5">
-                Produk Terkait yang Mungkin Anda Sukai
+              <h3 className="font-serif text-xl sm:text-2xl text-[#292925]">
+                Produk Terkait untuk Melengkapi Ritual Anda
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {relatedProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}
                   product={prod}
                   onAddToCart={handleAddToCart}
-                  onOpenOrderModal={handleOpenOrderModal}
+                  onOpenOrderModal={handleDirectBuy}
                 />
               ))}
             </div>
@@ -1187,54 +1120,48 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
       </main>
 
       {/* STICKY BOTTOM ACTION BAR FOR MOBILE */}
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-stone-200 p-2.5 sm:hidden shadow-lg flex items-center justify-between gap-2">
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-[#FAF8F4]/95 backdrop-blur-md border-t border-[#EAE4DA] p-3 sm:hidden flex items-center justify-between gap-3 shadow-editorial">
         <div className="min-w-0">
-          <span className="text-[9px] text-stone-400 block font-medium">
-            Total Harga:
+          <span className="text-[10px] text-[#292925]/60 block font-sans">
+            Total Formulasi:
           </span>
-          <span className="font-extrabold text-sm text-rose-600 font-mono">
+          <span className="font-serif font-bold text-sm text-[#292925]">
             {formatRupiah(currentPrice * quantity)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => handleAddToCart(product, selectedVariant, quantity)}
-            className="p-2.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-700 active:scale-95"
-            aria-label="Tambah ke Keranjang"
+            className="p-2.5 border border-[#292925] bg-white text-[#292925] active:bg-[#EAE4DA]"
+            aria-label="Tambah ke Kantong"
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingBag className="w-4 h-4" />
           </button>
           <button
             onClick={handleDirectBuy}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs shadow-md shadow-rose-600/30 active:scale-95 flex items-center gap-1"
+            className="px-4 py-2.5 bg-[#292925] text-[#FAF8F4] text-xs font-medium uppercase tracking-wider active:bg-[#87947B]"
           >
-            <Zap className="w-3.5 h-3.5 fill-white" />
-            <span>Beli Sekarang</span>
+            Pesan Sekarang
           </button>
         </div>
       </div>
 
       {/* POPUP MODAL FOR PHOTO / VIDEO PREVIEW */}
       {activeMediaModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in-up">
-          <div className="relative max-w-2xl w-full bg-stone-900 rounded-3xl overflow-hidden border border-stone-700 shadow-2xl flex flex-col">
-            <div className="p-3 sm:p-4 flex items-center justify-between border-b border-stone-800 text-white">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-xs">
-                  {activeMediaModal.reviewer.slice(0, 2)}
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs sm:text-sm">
-                    Dokumentasi {activeMediaModal.reviewer}
-                  </h4>
-                  <span className="text-[10px] text-stone-400">
-                    Video &amp; Foto Asli Pembeli BeautyCare
-                  </span>
-                </div>
+        <div className="fixed inset-0 z-50 bg-[#292925]/90 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative max-w-2xl w-full bg-[#292925] border border-[#44443E] shadow-2xl flex flex-col">
+            <div className="p-4 flex items-center justify-between border-b border-[#3A3A34] text-[#FAF8F4]">
+              <div className="space-y-0.5">
+                <h4 className="font-serif text-sm">
+                  Dokumentasi {activeMediaModal.reviewer}
+                </h4>
+                <span className="text-[10px] text-[#FAF8F4]/60 font-sans">
+                  Evaluasi Autentik Pengguna BeautyCare
+                </span>
               </div>
               <button
                 onClick={() => setActiveMediaModal(null)}
-                className="p-1 rounded-full text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
+                className="p-1 text-[#FAF8F4]/60 hover:text-[#FAF8F4] transition cursor-pointer"
                 aria-label="Tutup Preview"
               >
                 <X className="w-5 h-5" />
@@ -1258,7 +1185,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
               )}
             </div>
 
-            <div className="p-3 sm:p-4 bg-stone-950 text-stone-300 text-xs leading-relaxed">
+            <div className="p-4 bg-[#21211E] text-[#FAF8F4]/80 text-xs leading-relaxed font-sans">
               <p>&ldquo;{activeMediaModal.comment}&rdquo;</p>
             </div>
           </div>
@@ -1319,7 +1246,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
         />
       )}
 
-      {/* MODAL: CUSTOMER AUTH (LOGIN / REGISTER) */}
+      {/* MODAL: CUSTOMER AUTH */}
       <CustomerAuthModal
         isOpen={isCustomerAuthOpen}
         onClose={() => setIsCustomerAuthOpen(false)}
@@ -1330,45 +1257,45 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
 
       {/* MODAL: NOT PURCHASED WARNING */}
       {notPurchasedAlertOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 text-center border border-stone-200 animate-scale-up">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-7 h-7" />
+        <div className="fixed inset-0 z-50 bg-[#292925]/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white max-w-md w-full p-6 text-center border border-[#EAE4DA] shadow-xl">
+            <div className="w-12 h-12 rounded-full bg-[#EAE4DA] text-[#87947B] flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="w-6 h-6" />
             </div>
 
-            <h3 className="text-base sm:text-lg font-black text-stone-900 mb-2">
+            <h3 className="font-serif text-lg text-[#292925] mb-2">
               Khusus Pembeli Terverifikasi
             </h3>
 
-            <p className="text-xs text-stone-600 leading-relaxed mb-4">
-              Akun Anda (<span className="font-semibold text-stone-900">{customer?.email}</span>) belum memiliki riwayat pesanan produk <span className="font-bold text-stone-900">{product.name}</span>.
+            <p className="text-xs text-[#292925]/70 leading-relaxed mb-4 font-sans">
+              Akun Anda (<span className="font-medium text-[#292925]">{customer?.email}</span>) belum memiliki riwayat pembelian untuk produk <span className="font-medium text-[#292925]">{product.name}</span>.
             </p>
 
-            <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-left text-[11px] text-amber-900 mb-6 space-y-1">
-              <p className="font-bold flex items-center gap-1.5 text-amber-800">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
+            <div className="p-3 bg-[#FAF8F4] border border-[#EAE4DA] text-left text-[11px] text-[#292925]/75 mb-5 space-y-1 font-sans">
+              <p className="font-medium text-[#292925] flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#87947B]" />
                 Standar Keaslian Ulasan BeautyCare:
               </p>
-              <p className="text-amber-700">
-                Untuk menjamin bahwa setiap penilaian dan dokumentasi foto/video 100% otentik, ulasan hanya dapat dikirim setelah pesanan Anda diproses.
+              <p>
+                Untuk menjamin bahwa setiap dokumentasi dan ulasan 100% autentik, evaluasi produk hanya dapat dikirimkan setelah pesanan Anda diproses.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 font-sans">
               <button
                 type="button"
                 onClick={() => {
                   setNotPurchasedAlertOpen(false);
                   setOrderModalProduct(product);
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                className="w-full py-2.5 px-4 bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] text-xs font-medium uppercase tracking-wider transition cursor-pointer"
               >
-                Pesan Produk Ini Sekarang
+                Pesan Formulasi Ini
               </button>
               <button
                 type="button"
                 onClick={() => setNotPurchasedAlertOpen(false)}
-                className="w-full sm:w-auto py-2.5 px-4 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 text-xs font-semibold transition cursor-pointer"
+                className="w-full sm:w-auto py-2.5 px-4 border border-[#EAE4DA] text-[#292925] hover:bg-[#FAF8F4] text-xs font-medium transition cursor-pointer"
               >
                 Tutup
               </button>
@@ -1377,102 +1304,96 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
         </div>
       )}
 
-      {/* MODAL: TULIS PENILAIAN & ULASAN PRODUK */}
+      {/* MODAL: TULIS PENILAIAN */}
       {isWriteReviewOpen && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-5 sm:p-6 max-h-[92vh] overflow-y-auto border border-stone-200 animate-scale-up">
-            <div className="flex justify-between items-center pb-3.5 border-b border-stone-200">
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-rose-100 text-rose-600">
-                  <Star className="w-5 h-5 fill-rose-600 text-rose-600" />
-                </span>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-stone-900">
-                    Beri Penilaian &amp; Ulasan Produk
-                  </h3>
-                  <p className="text-[11px] text-stone-500">
-                    Sebagai: <span className="font-semibold text-stone-800">{customer?.name}</span> (Verified Buyer)
-                  </p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-[#292925]/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white max-w-lg w-full p-6 max-h-[92vh] overflow-y-auto border border-[#EAE4DA] shadow-xl">
+            <div className="flex justify-between items-center pb-4 border-b border-[#EAE4DA]">
+              <div>
+                <h3 className="font-serif text-lg text-[#292925]">
+                  Evaluasi &amp; Ulasan Formulasi
+                </h3>
+                <p className="text-[11px] text-[#292925]/60 font-sans">
+                  Oleh: <span className="font-medium text-[#292925]">{customer?.name}</span> (Verified Buyer)
+                </p>
               </div>
               <button
                 onClick={() => setIsWriteReviewOpen(false)}
-                className="text-stone-400 hover:text-stone-700 p-1.5 rounded-full hover:bg-stone-100 transition cursor-pointer"
+                className="text-[#292925]/50 hover:text-[#292925] p-1 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {reviewErrorMessage && (
-              <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{reviewErrorMessage}</span>
               </div>
             )}
 
             {reviewSuccessMessage && (
-              <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="mt-4 p-3 bg-[#87947B]/15 border border-[#87947B] text-[#292925] text-xs font-medium flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#87947B] shrink-0" />
                 <span>{reviewSuccessMessage}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmitReview} className="space-y-4 mt-4 text-xs">
-              {/* Product Info Preview */}
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 border border-stone-200/80">
+            <form onSubmit={handleSubmitReview} className="space-y-4 mt-4 text-xs font-sans">
+              <div className="flex items-center gap-3 p-3 bg-[#FAF8F4] border border-[#EAE4DA]">
                 <img
                   src={product.image || "/placeholder.jpg"}
                   alt={product.name}
-                  className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
+                  className="w-12 h-12 object-cover border border-[#EAE4DA] shrink-0"
                 />
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-xs font-bold text-stone-900 truncate">{product.name}</h4>
-                  <p className="text-[11px] text-rose-600 font-semibold">{product.category.name}</p>
+                  <h4 className="font-serif text-sm text-[#292925] truncate">{product.name}</h4>
+                  <p className="text-[11px] text-[#87947B] font-mono">{product.category.name}</p>
                 </div>
               </div>
 
-              {/* Star Rating Selector */}
+              {/* Star Rating */}
               <div>
-                <label className="block font-bold text-stone-800 mb-1.5">
-                  Berapa Rating Bintang Anda? <span className="text-rose-500">*</span>
+                <label className="block font-medium text-[#292925] mb-1.5">
+                  Rating Formulasi:
                 </label>
-                <div className="flex items-center gap-1.5 bg-stone-50 p-3 rounded-2xl border border-stone-200/80">
+                <div className="flex items-center gap-1.5 p-3 bg-[#FAF8F4] border border-[#EAE4DA]">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
                       onClick={() => setReviewRating(star)}
-                      className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                      className="p-1 cursor-pointer"
                     >
                       <Star
-                        className={`w-7 h-7 sm:w-8 sm:h-8 ${
+                        className={`w-6 h-6 ${
                           star <= reviewRating
-                            ? "text-amber-400 fill-amber-400 drop-shadow-xs"
-                            : "text-stone-300"
+                            ? "text-[#87947B] fill-[#87947B]"
+                            : "text-[#EAE4DA]"
                         }`}
                       />
                     </button>
                   ))}
-                  <span className="ml-3 font-bold text-xs text-stone-700">
-                    {reviewRating === 5 && "⭐⭐⭐⭐⭐ Luar Biasa Memuaskan!"}
-                    {reviewRating === 4 && "⭐⭐⭐⭐ Sangat Bagus"}
-                    {reviewRating === 3 && "⭐⭐⭐ Cukup Baik"}
-                    {reviewRating === 2 && "⭐⭐ Kurang Memuaskan"}
-                    {reviewRating === 1 && "⭐ Kecewa"}
+                  <span className="ml-3 font-medium text-xs text-[#292925]">
+                    {reviewRating === 5 && "Sangat Memuaskan"}
+                    {reviewRating === 4 && "Memuaskan"}
+                    {reviewRating === 3 && "Cukup"}
+                    {reviewRating === 2 && "Kurang Memuaskan"}
+                    {reviewRating === 1 && "Tidak Sesuai Harapan"}
                   </span>
                 </div>
               </div>
 
-              {/* Variant Selector (if has variants) */}
+              {/* Variant selector */}
               {product.variants && product.variants.length > 0 && (
                 <div>
-                  <label className="block font-bold text-stone-800 mb-1">
+                  <label className="block font-medium text-[#292925] mb-1">
                     Varian Ukuran yang Anda Beli:
                   </label>
                   <select
                     value={reviewVariant}
                     onChange={(e) => setReviewVariant(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-200 bg-white font-medium text-xs"
+                    className="w-full p-2.5 border border-[#EAE4DA] bg-white text-xs outline-none focus:border-[#292925]"
                   >
                     {product.variants.map((v) => (
                       <option key={v.id} value={v.size}>
@@ -1483,36 +1404,36 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                 </div>
               )}
 
-              {/* Review Comment */}
+              {/* Comment */}
               <div>
-                <label className="block font-bold text-stone-800 mb-1">
-                  Ulasan &amp; Pengalaman Pemakaian <span className="text-rose-500">*</span>
+                <label className="block font-medium text-[#292925] mb-1">
+                  Catatan Evaluasi &amp; Efek Pemakaian:
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Ceritakan bagaimana efeknya pada kulit Anda, tekstur produk, aroma, dan kecepatan hasil yang dirasakan..."
-                  className="w-full p-3 rounded-2xl border border-stone-200 focus:ring-2 focus:ring-rose-500/20 text-xs"
+                  placeholder="Ceritakan penyerapan tekstur, aroma alami, dan efek yang dirasakan pada kulit setelah pemakaian teratur..."
+                  className="w-full p-3 border border-[#EAE4DA] outline-none focus:border-[#292925] text-xs"
                 />
               </div>
 
-              {/* Dokumentasi Foto / Video */}
-              <div className="p-3.5 bg-rose-50/40 rounded-2xl border border-rose-100/90 space-y-3">
+              {/* Media documentation */}
+              <div className="p-3 bg-[#FAF8F4] border border-[#EAE4DA] space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-stone-800 flex items-center gap-1.5 text-xs">
-                    <Camera className="w-4 h-4 text-rose-600" />
-                    Lampirkan Dokumentasi Pembeli (Opsional)
+                  <label className="font-medium text-[#292925] flex items-center gap-1.5 text-xs">
+                    <Camera className="w-3.5 h-3.5 text-[#87947B]" />
+                    Lampiran Foto / Video (Opsional)
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => setReviewMediaType("image")}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                      className={`px-2.5 py-0.5 text-[10px] font-medium transition cursor-pointer ${
                         reviewMediaType === "image"
-                          ? "bg-rose-600 text-white"
-                          : "bg-white text-stone-600 border border-stone-200"
+                          ? "bg-[#292925] text-[#FAF8F4]"
+                          : "bg-white text-[#292925] border border-[#EAE4DA]"
                       }`}
                     >
                       Foto
@@ -1520,10 +1441,10 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                     <button
                       type="button"
                       onClick={() => setReviewMediaType("video")}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition ${
+                      className={`px-2.5 py-0.5 text-[10px] font-medium transition cursor-pointer ${
                         reviewMediaType === "video"
-                          ? "bg-rose-600 text-white"
-                          : "bg-white text-stone-600 border border-stone-200"
+                          ? "bg-[#292925] text-[#FAF8F4]"
+                          : "bg-white text-[#292925] border border-[#EAE4DA]"
                       }`}
                     >
                       Video
@@ -1531,96 +1452,33 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
                   </div>
                 </div>
 
-                <div>
-                  <input
-                    type="url"
-                    value={reviewMediaUrl}
-                    onChange={(e) => setReviewMediaUrl(e.target.value)}
-                    placeholder={
-                      reviewMediaType === "video"
-                        ? "Masukkan URL video MP4 (contoh: https://assets.mixkit.co/...)"
-                        : "Masukkan URL foto (contoh: https://images.unsplash.com/...)"
-                    }
-                    className="w-full p-2.5 rounded-xl border border-stone-200 bg-white text-xs"
-                  />
-                </div>
-
-                {/* Quick Presets for Demo / Testing */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="text-[10px] text-stone-500">Contoh Cepat:</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReviewMediaType("image");
-                      setReviewMediaUrl(
-                        "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=600&q=80"
-                      );
-                    }}
-                    className="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-600 hover:text-stone-900 text-[10px] font-medium cursor-pointer"
-                  >
-                    + Foto Tekstur Skincare
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReviewMediaType("video");
-                      setReviewMediaUrl(
-                        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-                      );
-                    }}
-                    className="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-600 hover:text-stone-900 text-[10px] font-medium cursor-pointer"
-                  >
-                    + Video Pemakaian
-                  </button>
-                </div>
-
-                {/* Live Preview */}
-                {reviewMediaUrl && (
-                  <div className="mt-2 p-2 rounded-xl bg-white border border-stone-200">
-                    <span className="text-[10px] font-bold text-stone-500 block mb-1">
-                      Pratinjau Dokumentasi:
-                    </span>
-                    {reviewMediaType === "video" ? (
-                      <video
-                        src={reviewMediaUrl}
-                        controls
-                        className="w-full max-h-36 object-contain rounded-lg bg-black"
-                      />
-                    ) : (
-                      <img
-                        src={reviewMediaUrl}
-                        alt="Preview ulasan"
-                        className="w-full max-h-36 object-cover rounded-lg"
-                      />
-                    )}
-                  </div>
-                )}
+                <input
+                  type="url"
+                  value={reviewMediaUrl}
+                  onChange={(e) => setReviewMediaUrl(e.target.value)}
+                  placeholder="Masukkan URL foto atau video..."
+                  className="w-full p-2 border border-[#EAE4DA] bg-white text-xs outline-none"
+                />
               </div>
 
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 pt-3 border-t border-stone-200">
+              {/* Buttons */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EAE4DA]">
                 <button
                   type="button"
                   onClick={() => setIsWriteReviewOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-stone-200 text-stone-600 font-semibold cursor-pointer"
+                  className="px-4 py-2 border border-[#EAE4DA] text-[#292925] hover:bg-[#FAF8F4] cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={reviewSubmitting}
-                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  className="px-5 py-2 bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] font-medium uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {reviewSubmitting ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Mengirim...</span>
-                    </>
+                    <span>Mengirimkan...</span>
                   ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Publikasikan Penilaian</span>
-                    </>
+                    <span>Kirim Penilaian</span>
                   )}
                 </button>
               </div>

@@ -16,16 +16,21 @@ import {
 
 import Navbar from "./components/Navbar";
 import HeroSlider from "./components/HeroSlider";
-import FeatureHighlights from "./components/FeatureHighlights";
-import Product3DShowcase from "./components/Product3DShowcase";
+import ShopByCategory from "./components/ShopByCategory";
+import BestsellerShelf from "./components/BestsellerShelf";
+import SkinConcernFinder from "./components/SkinConcernFinder";
+import BrandStory from "./components/BrandStory";
+import RoutineGuide from "./components/RoutineGuide";
 import CatalogFilters from "./components/CatalogFilters";
 import ProductCard from "./components/ProductCard";
-import CartDrawer from "./components/CartDrawer";
-import OrderModal from "./components/OrderModal";
+import CustomerReviewsSection from "./components/CustomerReviewsSection";
 import LoyaltySection from "./components/LoyaltySection";
 import ArticlesSection from "./components/ArticlesSection";
+import NewsletterSection from "./components/NewsletterSection";
 import FaqSection from "./components/FaqSection";
 import Footer from "./components/Footer";
+import CartDrawer from "./components/CartDrawer";
+import OrderModal from "./components/OrderModal";
 
 interface Props {
   initialCategories: Category[];
@@ -71,7 +76,7 @@ export default function StorefrontClient({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSliderPaused, setIsSliderPaused] = useState(false);
 
-  // Fetch Hero Slides from JSON
+  // Fetch Hero Slides
   useEffect(() => {
     let isMounted = true;
     async function fetchHeroSlides() {
@@ -115,7 +120,7 @@ export default function StorefrontClient({
   const [selectedSizeFilter, setSelectedSizeFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("recommended");
 
-  // Cart State (Persisted in localStorage via useSyncExternalStore to avoid SSR hydration mismatch)
+  // Cart State (Persisted in localStorage via useSyncExternalStore)
   const cartJson = useSyncExternalStore(
     subscribeCart,
     getCartSnapshot,
@@ -267,7 +272,7 @@ export default function StorefrontClient({
 
     updateCart(updatedCart);
     showToast(
-      `✓ ${qty}x ${product.name} ${itemSize ? `(${itemSize})` : ""} ditambahkan ke keranjang!`
+      `✓ ${qty}x ${product.name} ${itemSize ? `(${itemSize})` : ""} ditambahkan ke kantong belanja!`
     );
   };
 
@@ -349,7 +354,7 @@ export default function StorefrontClient({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error (data.error || "Failed to process order");
+        throw new Error(data.error || "Failed to process order");
       }
 
       router.push(`/order/${data.invoiceNumber}`);
@@ -426,19 +431,19 @@ export default function StorefrontClient({
   }, [cart]);
 
   return (
-    <div className="min-h-screen bg-[#faf7f5] text-stone-800 flex flex-col selection:bg-rose-200">
+    <div className="min-h-screen bg-[#FAF8F4] text-[#292925] flex flex-col selection:bg-[#87947B]/20">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-3 sm:top-20 right-3 sm:right-5 z-[70] bg-stone-900 text-white text-[11px] sm:text-xs font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl border border-stone-800 flex items-center gap-1.5 sm:gap-2 animate-fade-in-up">
-          <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+        <div className="fixed top-20 right-4 sm:right-6 z-[80] bg-[#292925] text-[#FAF8F4] text-xs font-medium px-4 py-3 rounded-sm shadow-editorial border border-[#33332D] flex items-center gap-2 animate-fade-in-up font-sans">
+          <CheckCircle2 className="w-4 h-4 text-[#87947B] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Modular Navbar */}
+      {/* 1 & 2. Announcement Bar & Minimalist Navbar */}
       <Navbar totalCartItems={totalCartItems} onOpenCart={() => setIsCartOpen(true)} />
 
-      {/* Modular Hero Carousel Section */}
+      {/* 3. Editorial Hero Section */}
       <HeroSlider
         slides={slides}
         isLoading={isLoadingSlides}
@@ -450,20 +455,43 @@ export default function StorefrontClient({
         onSelectCategory={setSelectedCategory}
       />
 
-      {/* Feature Highlights beneath Carousel */}
-      <FeatureHighlights />
+      {/* 4. Shop by Category */}
+      <ShopByCategory
+        categories={initialCategories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
 
-      {/* Product Catalog & Filters Section */}
-      <section id="katalog" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full flex-1">
-        <div className="space-y-6 sm:space-y-10">
-          {/* 3D Interactive Product Spotlight Showcase */}
-          <Product3DShowcase
-            products={initialProducts}
-            onAddToCart={handleAddToCart}
-            onOpenOrderModal={handleOpenOrderModal}
-          />
+      {/* 5. Best-Selling Products */}
+      <BestsellerShelf
+        products={initialProducts}
+        onAddToCart={handleAddToCart}
+        onOpenOrderModal={handleOpenOrderModal}
+      />
 
-          {/* Modular Filters */}
+      {/* 6. Skin Concern Finder */}
+      <SkinConcernFinder
+        products={initialProducts}
+        onSelectCategory={setSelectedCategory}
+        onOpenOrderModal={handleOpenOrderModal}
+      />
+
+      {/* Catalog & Filter Section */}
+      <section id="katalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 w-full flex-1">
+        <div className="space-y-8 sm:space-y-10">
+          <div className="space-y-2">
+            <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B]">
+              Koleksi Lengkap
+            </span>
+            <h2 className="font-serif text-2xl sm:text-4xl text-[#292925] tracking-tight">
+              Eksplorasi Seluruh Formulasi
+            </h2>
+            <p className="text-xs sm:text-sm text-[#292925]/70 max-w-xl font-sans">
+              Temukan formula yang tepat berdasarkan kategori, bahan aktif, atau ukuran kemasan yang Anda butuhkan.
+            </p>
+          </div>
+
+          {/* Filter Toolbar */}
           <CatalogFilters
             categories={initialCategories}
             selectedCategory={selectedCategory}
@@ -480,13 +508,13 @@ export default function StorefrontClient({
 
           {/* Product Cards Grid */}
           {filteredProducts.length === 0 ? (
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-16 text-center border border-stone-200/80 shadow-xs space-y-2 sm:space-y-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-rose-50 text-rose-500 mx-auto flex items-center justify-center">
-                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="bg-white rounded-sm p-12 sm:p-20 text-center border border-[#EAE4DA] shadow-xs space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#EAE4DA]/50 text-[#87947B] mx-auto flex items-center justify-center">
+                <Search className="w-5 h-5" />
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-stone-900">Tidak ada produk yang cocok</h3>
-              <p className="text-[11px] sm:text-xs text-stone-500 max-w-sm mx-auto">
-                Coba ubah kata kunci pencarian atau sesuaikan filter kategori dan filter ukuran ml Anda.
+              <h3 className="font-serif text-lg text-[#292925]">Tidak ada formulasi yang sesuai</h3>
+              <p className="text-xs text-[#292925]/60 max-w-sm mx-auto font-sans">
+                Cobalah mengubah kata kunci pencarian atau sesuaikan pilihan filter kategori dan ukuran ml.
               </p>
               <button
                 onClick={() => {
@@ -494,13 +522,13 @@ export default function StorefrontClient({
                   setSearchQuery("");
                   setSelectedSizeFilter("ALL");
                 }}
-                className="mt-1 sm:mt-2 text-[11px] sm:text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                className="mt-2 text-xs font-medium text-[#87947B] hover:text-[#292925] underline cursor-pointer"
               >
                 Reset Semua Filter
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -514,19 +542,29 @@ export default function StorefrontClient({
         </div>
       </section>
 
-      {/* Loyalty Program & Sistem Poin Section */}
-      <LoyaltySection />
+      {/* 7. Brand Story ("The Philosophy") */}
+      <BrandStory />
 
-      {/* Edukasi (Artikel / Blog CMS) Section */}
+      {/* 8. Product Education ("The Daily Ritual" & Clinical Journal) */}
+      <RoutineGuide />
       <ArticlesSection articles={initialArticles} />
 
-      {/* Modular FAQ Section with Smooth Scrolling */}
+      {/* 9. Customer Reviews */}
+      <CustomerReviewsSection />
+
+      {/* 10. BeautyCare Rewards (Privilege Club) */}
+      <LoyaltySection />
+
+      {/* 11. Newsletter */}
+      <NewsletterSection />
+
+      {/* FAQ Section */}
       <FaqSection />
 
-      {/* Modular Footer */}
+      {/* 12. Professional Footer */}
       <Footer categories={initialCategories} onSelectCategory={setSelectedCategory} />
 
-      {/* Modular Cart Drawer */}
+      {/* Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -550,7 +588,7 @@ export default function StorefrontClient({
         onSubmitOrder={handleConfirmCartOrder}
       />
 
-      {/* Modular Order Modal */}
+      {/* Order Modal */}
       <OrderModal
         product={selectedProduct}
         selectedVariant={selectedVariant}

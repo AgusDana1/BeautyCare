@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  HelpCircle,
   ChevronDown,
   Sparkles,
   ShieldCheck,
@@ -74,27 +73,26 @@ export default function FaqSection() {
   };
 
   return (
-    <section id="faq" className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-16 scroll-mt-20">
+    <section id="faq" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 scroll-mt-24">
       {/* Header */}
-      <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/70 text-rose-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
-          <HelpCircle className="w-3.5 h-3.5" />
-          <span>Pusat Tanya Jawab</span>
-        </div>
+      <div className="text-center space-y-3 mb-10 sm:mb-12">
+        <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#87947B]">
+          Pertanyaan Umum
+        </span>
 
-        <h2 className="text-xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
-          Pertanyaan yang Sering Diajukan
+        <h2 className="font-serif text-2xl sm:text-4xl text-[#292925] tracking-tight">
+          Informasi Formulasi &amp; Layanan
         </h2>
 
-        <p className="text-[11px] sm:text-sm text-stone-500 max-w-xl mx-auto leading-relaxed">
-          Temukan jawaban cepat seputar keaslian produk BPOM, filter varian ukuran (ml), metode pembayaran QRIS, invoice resmi, dan pengiriman BeautyCare.
+        <p className="text-xs sm:text-sm text-[#292925]/70 max-w-lg mx-auto leading-relaxed font-sans">
+          Panduan komprehensif mengenai sertifikasi BPOM, varian ukuran ml, metode pembayaran QRIS resmi, dan keamanan pengiriman.
         </p>
 
-        {/* Category Tabs Filter */}
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-2 sm:pt-4 overflow-x-auto scrollbar-none pb-1">
+        {/* Minimalist Filter Tabs */}
+        <div className="flex items-center justify-center gap-2 pt-4 overflow-x-auto scrollbar-none pb-1">
           {[
             { id: "all", label: "Semua Pertanyaan" },
-            { id: "produk", label: "Produk & Varian ml" },
+            { id: "produk", label: "Formulasi & Ukuran ml" },
             { id: "pembayaran", label: "Pembayaran & Invoice" },
             { id: "pengiriman", label: "Pengiriman" },
           ].map((tab) => {
@@ -103,10 +101,10 @@ export default function FaqSection() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? "bg-rose-600 text-white shadow-xs sm:shadow-md shadow-rose-600/25 scale-105"
-                    : "bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 hover:border-stone-300"
+                    ? "bg-[#292925] text-[#FAF8F4]"
+                    : "bg-[#EAE4DA]/50 text-[#292925]/75 hover:bg-[#EAE4DA]"
                 }`}
               >
                 {tab.label}
@@ -116,54 +114,52 @@ export default function FaqSection() {
         </div>
       </div>
 
-      {/* Accordion List with Dynamic Fluid Transitions */}
+      {/* Accordion List */}
       {loadingFaqs ? (
-        <div className="space-y-2.5 sm:space-y-3">
-          {[1, 2, 3].map((n) => (
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className="rounded-2xl sm:rounded-3xl border border-stone-200/70 p-4 sm:p-5 bg-white/70 animate-pulse flex items-center justify-between"
+              className="border border-[#EAE4DA] p-5 bg-white animate-pulse flex items-center justify-between"
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="w-8 h-8 rounded-xl bg-stone-200" />
-                <div className="h-4 bg-stone-200 rounded-md w-3/4" />
-              </div>
+              <div className="h-4 bg-[#EAE4DA] w-2/3" />
+              <div className="w-5 h-5 bg-[#EAE4DA] rounded-full" />
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-2.5 sm:space-y-3">
+        <div className="space-y-3">
           {filteredFaqs.map((faq) => {
             const isOpen = openId === faq.id;
             const Icon = (faq.icon && ICON_MAP[faq.icon]) ? ICON_MAP[faq.icon] : Sparkles;
             return (
               <div
                 key={faq.id}
-                className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden ${
+                className={`border transition-all duration-200 overflow-hidden ${
                   isOpen
-                    ? "bg-white border-rose-300 shadow-md sm:shadow-lg shadow-rose-900/5 ring-1 ring-rose-500/20"
-                    : "bg-white/90 border-stone-200/80 hover:border-stone-300 shadow-2xs hover:shadow-xs hover:bg-white"
+                    ? "bg-white border-[#87947B] shadow-xs"
+                    : "bg-[#FAF8F4] border-[#EAE4DA] hover:border-[#87947B]/60"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => toggleFaq(faq.id)}
-                  className="w-full p-3.5 sm:p-5 flex items-center justify-between gap-3 text-left cursor-pointer group"
+                  className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left cursor-pointer group"
                   aria-expanded={isOpen}
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
                     <div
-                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                         isOpen
-                          ? "bg-rose-600 text-white shadow-xs"
-                          : "bg-stone-100 text-stone-500 group-hover:bg-rose-50 group-hover:text-rose-600"
+                          ? "bg-[#87947B] text-[#FAF8F4]"
+                          : "bg-[#EAE4DA]/60 text-[#292925]/70 group-hover:bg-[#EAE4DA]"
                       }`}
                     >
-                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Icon className="w-3.5 h-3.5" />
                     </div>
                     <span
-                      className={`text-xs sm:text-sm font-bold tracking-tight transition-colors ${
-                        isOpen ? "text-rose-600" : "text-stone-900 group-hover:text-rose-600"
+                      className={`text-xs sm:text-sm font-medium tracking-wide transition-colors ${
+                        isOpen ? "text-[#292925] font-semibold" : "text-[#292925] group-hover:text-[#87947B]"
                       }`}
                     >
                       {faq.question}
@@ -171,13 +167,13 @@ export default function FaqSection() {
                   </div>
 
                   <div
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border border-[#EAE4DA] transition-transform duration-300 ${
                       isOpen
-                        ? "bg-rose-100 text-rose-600 rotate-180"
-                        : "bg-stone-100 text-stone-400 group-hover:bg-stone-200"
+                        ? "bg-[#292925] text-[#FAF8F4] rotate-180"
+                        : "bg-white text-[#292925]/60 group-hover:text-[#292925]"
                     }`}
                   >
-                    <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <ChevronDown className="w-3.5 h-3.5" />
                   </div>
                 </button>
 
@@ -188,8 +184,8 @@ export default function FaqSection() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-3.5 sm:px-5 pb-3.5 sm:pb-5 pt-0 text-[11px] sm:text-xs text-stone-600 leading-relaxed border-t border-stone-100 mt-1">
-                      <p className="bg-stone-50/70 p-3 sm:p-3.5 rounded-xl border border-stone-200/50 mt-2">
+                    <div className="px-4 sm:px-5 pb-5 pt-1 text-xs sm:text-sm text-[#292925]/75 leading-relaxed border-t border-[#EAE4DA]/60 font-sans">
+                      <p className="pt-3">
                         {faq.answer}
                       </p>
                     </div>
@@ -201,30 +197,25 @@ export default function FaqSection() {
         </div>
       )}
 
-      {/* Contact Support Banner Card */}
-      <div className="mt-6 sm:mt-10 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-rose-50 via-pink-50 to-stone-50 border border-rose-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-2xs">
-        <div className="flex items-center gap-3 text-center sm:text-left">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/25">
-            <MessageCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-stone-900">
-              Punya pertanyaan lain yang belum terjawab?
-            </h4>
-            <p className="text-[10px] sm:text-xs text-stone-500 mt-0.5">
-              Tim Customer Service kami siap melayani Anda setiap hari pukul 08.00 - 21.00 WIB.
-            </p>
-          </div>
+      {/* Understated Consultation Callout */}
+      <div className="mt-12 p-6 sm:p-8 bg-[#EAE4DA]/30 border border-[#EAE4DA] flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+        <div className="space-y-1">
+          <h4 className="font-serif text-base sm:text-lg text-[#292925]">
+            Memerlukan Konsultasi Formulasi Khusus?
+          </h4>
+          <p className="text-xs text-[#292925]/70 font-sans">
+            Tim beauty advisor kami siap membantu menyesuaikan produk dengan kondisi spesifik kulit Anda.
+          </p>
         </div>
 
         <a
-          href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20bertanya%20seputar%20produk%20dan%20pemesanan"
+          href="https://wa.me/62881038322937?text=Halo%20BeautyCare,%20saya%20ingin%20konsultasi%20seputar%20formulasi%20produk"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] sm:text-xs shadow-md shadow-emerald-600/25 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 shrink-0 cursor-pointer"
+          className="px-5 py-2.5 rounded-sm bg-[#292925] hover:bg-[#87947B] text-[#FAF8F4] font-medium text-xs tracking-wider uppercase transition-colors duration-200 flex items-center gap-2 shrink-0 cursor-pointer"
         >
-          <MessageCircle className="w-3.5 h-3.5" />
-          <span>Chat WhatsApp CS</span>
+          <MessageCircle className="w-3.5 h-3.5 text-[#87947B] group-hover:text-[#FAF8F4]" />
+          <span>Hubungi Konsultan</span>
         </a>
       </div>
     </section>
