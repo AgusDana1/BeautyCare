@@ -17,6 +17,7 @@ import {
 import Navbar from "./components/Navbar";
 import HeroSlider from "./components/HeroSlider";
 import FeatureHighlights from "./components/FeatureHighlights";
+import Product3DShowcase from "./components/Product3DShowcase";
 import CatalogFilters from "./components/CatalogFilters";
 import ProductCard from "./components/ProductCard";
 import CartDrawer from "./components/CartDrawer";
@@ -454,7 +455,14 @@ export default function StorefrontClient({
 
       {/* Product Catalog & Filters Section */}
       <section id="katalog" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full flex-1">
-        <div className="space-y-4 sm:space-y-8">
+        <div className="space-y-6 sm:space-y-10">
+          {/* 3D Interactive Product Spotlight Showcase */}
+          <Product3DShowcase
+            products={initialProducts}
+            onAddToCart={handleAddToCart}
+            onOpenOrderModal={handleOpenOrderModal}
+          />
+
           {/* Modular Filters */}
           <CatalogFilters
             categories={initialCategories}

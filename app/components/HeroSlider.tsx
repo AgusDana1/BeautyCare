@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, ShieldCheck, Flame } from "lucide-react";
 import { HeroSlide } from "../types/storefront";
 
 interface HeroSliderProps {
@@ -39,6 +39,7 @@ export default function HeroSlider({
       </section>
     );
   }
+
   return (
     <section
       className="relative overflow-hidden w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-6 pb-4 sm:pb-10"
@@ -48,6 +49,14 @@ export default function HeroSlider({
       onTouchEnd={() => onPauseToggle(false)}
     >
       <div className="relative rounded-2xl sm:rounded-4xl overflow-hidden shadow-xl sm:shadow-2xl border border-stone-200/70 aspect-[4/4.2] sm:aspect-[16/9] md:aspect-[21/9] min-h-[340px] sm:min-h-[480px] md:min-h-[520px] bg-stone-900">
+        {/* Dynamic Autoplay Progress Bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 z-30 bg-black/40">
+          <div
+            key={currentSlide}
+            className="h-full bg-gradient-to-r from-rose-500 via-pink-400 to-amber-300 animate-progress-fill"
+          />
+        </div>
+
         {/* Slides */}
         {slides.map((slide, index) => {
           const isActive = index === currentSlide;
@@ -67,7 +76,7 @@ export default function HeroSlider({
                 }`}
               />
 
-              {/* Aesthetic Dark Gradient Overlay for optimal readability */}
+              {/* Aesthetic Dark Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-r from-stone-950/95 via-stone-950/75 sm:via-stone-950/60 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-transparent to-stone-950/30" />
 
@@ -127,6 +136,23 @@ export default function HeroSlider({
                   </div>
                 </div>
               </div>
+
+              {/* Right Side 3D Interactive Floating Highlight Pill (Visible on Desktop / Tablet) */}
+              <div className="hidden lg:flex absolute right-12 top-1/2 -translate-y-1/2 flex-col items-end gap-3 pointer-events-none z-10 animate-fade-in-up">
+                <div className="p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl space-y-3 max-w-[260px] animate-float-3d">
+                  <div className="flex items-center gap-2 text-rose-300 text-xs font-bold uppercase tracking-wider">
+                    <Flame className="w-4 h-4 text-rose-400 animate-pulse" />
+                    <span>Diskon &amp; Poin 2x</span>
+                  </div>
+                  <p className="text-xs text-stone-200 leading-relaxed font-medium">
+                    Nikmati diskon langsung per ukuran (ml) serta poin cashback di setiap pesanan.
+                  </p>
+                  <div className="flex items-center gap-2 pt-2 border-t border-white/10 text-[11px] text-emerald-300 font-semibold">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Garansi 100% Produk Original BPOM</span>
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })}
@@ -135,7 +161,7 @@ export default function HeroSlider({
         <button
           onClick={onPrev}
           aria-label="Slide Sebelumnya"
-          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-stone-900/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group"
+          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-rose-600/90 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group shadow-lg"
         >
           <ChevronLeft className="w-3.5 h-3.5 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:-translate-x-0.5 transition-transform" />
         </button>
@@ -144,13 +170,13 @@ export default function HeroSlider({
         <button
           onClick={onNext}
           aria-label="Slide Berikutnya"
-          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-stone-900/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group"
+          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-stone-900/40 hover:bg-rose-600/90 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer group shadow-lg"
         >
           <ChevronRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:translate-x-0.5 transition-transform" />
         </button>
 
-        {/* Pagination Indicators */}
-        <div className="absolute bottom-2.5 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 sm:gap-2 bg-stone-950/40 backdrop-blur-md px-2.5 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full border border-white/10">
+        {/* Pagination Indicators with Preview Titles */}
+        <div className="absolute bottom-2.5 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 bg-stone-950/50 backdrop-blur-md px-3 py-1 sm:px-4 sm:py-2 rounded-full border border-white/10 shadow-lg">
           {slides.map((_, idx) => {
             const isActive = idx === currentSlide;
             return (
@@ -158,10 +184,10 @@ export default function HeroSlider({
                 key={idx}
                 onClick={() => onSelectSlide(idx)}
                 aria-label={`Ke slide ${idx + 1}`}
-                className={`h-1 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
                   isActive
-                    ? "w-4 sm:w-7 bg-gradient-to-r from-rose-400 to-pink-500 shadow-xs"
-                    : "w-1 sm:w-2 bg-white/40 hover:bg-white/70"
+                    ? "w-6 sm:w-8 bg-gradient-to-r from-rose-400 via-pink-400 to-amber-300 shadow-xs"
+                    : "w-2 sm:w-2.5 bg-white/40 hover:bg-white/80"
                 }`}
               />
             );

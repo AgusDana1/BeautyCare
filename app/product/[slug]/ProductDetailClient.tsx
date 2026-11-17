@@ -491,14 +491,19 @@ export default function ProductDetailClient({ product, relatedProducts }: Props)
       {/* Main Product Showcase Section */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-          {/* LEFT: Image Gallery with Interactive Thumbnails */}
+          {/* LEFT: Image Gallery with Interactive 3D Card and Thumbnails */}
           <div className="lg:col-span-5 space-y-3 sm:space-y-4">
-            <div className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-stone-200/80 shadow-md group">
+            <div className="relative aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-b from-stone-100 to-rose-50/30 border border-stone-200/80 shadow-3d-card group transform-style-3d perspective-1000 hover:shadow-3d-card-hover transition-all duration-500">
               <img
                 src={galleryImages[activeImageIndex] || product.image || ""}
                 alt={product.name}
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
               />
+
+              {/* Shimmer Light Sweeping Accent */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                <div className="w-[80%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-25deg] animate-shimmer-light" />
+              </div>
 
               <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                 <span className="px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full bg-white/95 backdrop-blur-xs text-stone-800 shadow-xs border border-stone-100 flex items-center gap-1">
